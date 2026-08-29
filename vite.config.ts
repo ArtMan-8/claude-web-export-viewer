@@ -64,13 +64,30 @@ function localArchive(): Plugin {
   }
 }
 
+/**
+ * На GitHub Pages проектный сайт отдаётся по пути /<repo>/, а не с корня —
+ * без этого base все ассеты после деплоя будут 404.
+ */
+function spaFallback404(): Plugin {
+  return {
+    name: 'spa-fallback-404',
+    apply: 'build',
+    closeBundle() {
+      const outDir = path.resolve(import.meta.dirname, 'dist')
+      fs.copyFileSync(path.join(outDir, 'index.html'), path.join(outDir, '404.html'))
+    },
+  }
+}
+
 export default defineConfig({
+  base: process.env.GITHUB_PAGES ? '/claude-web-export-viewer/' : '/',
   plugins: [
     // Плагин роутера обязан идти перед react() — так требует его документация
     tanstackRouter({ target: 'react', autoCodeSplitting: true }),
     react(),
     tailwindcss(),
     localArchive(),
+    spaFallback404(),
   ],
   resolve: {
     alias: {
