@@ -1,4 +1,5 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 
 export function BranchSwitcher({
@@ -10,6 +11,8 @@ export function BranchSwitcher({
   total: number
   onSelect: (nextIndex: number) => void
 }) {
+  const { t } = useTranslation()
+
   return (
     <div className="flex items-center justify-center gap-1 py-1 text-xs text-muted-foreground">
       <Button
@@ -18,7 +21,7 @@ export function BranchSwitcher({
         className="size-5"
         disabled={index <= 0}
         onClick={() => onSelect(index - 1)}
-        aria-label="Предыдущая ветка"
+        aria-label={t('conversation.prevBranch')}
       >
         <ChevronLeft className="size-3.5" />
       </Button>
@@ -31,7 +34,7 @@ export function BranchSwitcher({
         className="size-5"
         disabled={index >= total - 1}
         onClick={() => onSelect(index + 1)}
-        aria-label="Следующая ветка"
+        aria-label={t('conversation.nextBranch')}
       >
         <ChevronRight className="size-3.5" />
       </Button>

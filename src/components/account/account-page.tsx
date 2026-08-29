@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Switch } from '@/components/ui/switch'
@@ -36,6 +37,7 @@ function formatTimestamp(iso: string): string {
 }
 
 export function AccountPage() {
+  const { t } = useTranslation()
   const { archive } = useArchive()
   const { showPII, setShowPII } = useSettings()
 
@@ -45,10 +47,10 @@ export function AccountPage() {
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-6 p-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold">Аккаунт</h1>
+        <h1 className="text-xl font-semibold">{t('account.title')}</h1>
         <div className="flex items-center gap-2">
           <Label htmlFor="show-pii" className="text-sm text-muted-foreground">
-            Показать email и IP
+            {t('account.showPii')}
           </Label>
           <Switch id="show-pii" checked={showPII} onCheckedChange={setShowPII} />
         </div>
@@ -57,7 +59,7 @@ export function AccountPage() {
       {user && (
         <Card>
           <CardHeader>
-            <CardTitle>Профиль</CardTitle>
+            <CardTitle>{t('account.profile')}</CardTitle>
           </CardHeader>
           <CardContent className="flex items-center gap-3">
             <Avatar>
@@ -73,21 +75,21 @@ export function AccountPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>История входов ({archive.loginEvents.length})</CardTitle>
+          <CardTitle>{t('account.loginHistory', { count: archive.loginEvents.length })}</CardTitle>
         </CardHeader>
         <CardContent className="overflow-x-auto">
           {archive.loginEvents.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Нет данных об истории входов</p>
+            <p className="text-sm text-muted-foreground">{t('account.noLoginHistory')}</p>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Дата</TableHead>
-                  <TableHead>IP</TableHead>
-                  <TableHead>Браузер</TableHead>
-                  <TableHead>ОС</TableHead>
-                  <TableHead>Гео</TableHead>
-                  <TableHead>Способ</TableHead>
+                  <TableHead>{t('account.date')}</TableHead>
+                  <TableHead>{t('account.ip')}</TableHead>
+                  <TableHead>{t('account.browser')}</TableHead>
+                  <TableHead>{t('account.os')}</TableHead>
+                  <TableHead>{t('account.geo')}</TableHead>
+                  <TableHead>{t('account.method')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
