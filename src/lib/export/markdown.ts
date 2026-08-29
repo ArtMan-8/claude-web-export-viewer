@@ -1,0 +1,142 @@
+import type { Block, Citation, Conversation, Project } from '@/lib/archive/model'
+
+export interface MarkdownExportOptions {
+  /** Показывать блоки инструментов (tool_use/tool_result) — по умолчанию скрыты, это ~90% объёма архива */
+  includeTools: boolean
+  /** Показывать размышления Claude (thinking-блоки) — по умолчанию показаны */
+  includeThinking?: boolean
+  project?: Project | null
+}
+
+function formatDate(iso: string): string {
+  if (!iso) return ''
+  return iso.replace('T', ' ').slice(0, 16)
+}
+
+function yamlString(value: string): string {
+  return JSON.stringify(value) // валидный YAML flow-scalar с экранированием
+}
+
+function renderTool(block: Extract<Block, { kind: 'tool' }>): string {
+  const parts: string[] = []
+  const summary = block.isError ? `⚠️ ${block.label} (ошибка)` : block.label
+
+  parts.push(`<details>\n<summary>${summary}</summary>\n`)
+
+  if (block.input !== undefined) {
+    parts.push('\n```json\n' + JSON.stringify(block.input, null, 2) + '\n```\n')
+  }
+
+  if (block.sources.length > 0) {
+    parts.push(
+      '\n' +
+        block.sources
+          .map((s) => `- [${s.title || s.url}](${s.url})${s.snippet ? ` — ${s.snippet}` : ''}`)
+          .join('\n') +
+        '\n',
+    )
+  } else if (block.resultText) {
+    parts.push('\n```\n' + block.resultText + '\n```\n')
+  }
+
+  parts.push('\n</details>')
+  return parts.join('')
+}
+
+function renderUnknown(block: Extract<Block, { kind: 'unknown' }>): string {
+  return (
+    `<details>\n<summary>Нераспознанный блок: ${block.blockType}</summary>\n\n` +
+    '```json\n' +
+    JSON.stringify(block.raw, null, 2) +
+    '\n```\n\n</details>'
+  )
+}
+
+/**
+ * Рендерит беседу в Markdown с YAML-frontmatter. Цитаты выносятся в сноски в
+ * конце документа, а не вклеиваются по индексам символов — offset-ы в
+ * citations считаются по исходному тексту Claude, который может не совпадать
+ * посимвольно после нормализации, поэтому вклейка по индексу ненадёжна.
+ */
+export function conversationToMarkdown(conversation: Conversation, options: MarkdownExportOptions): string {
+  const footnotes: string[] = []
+  const seenUrls = new Map<string, number>()
+
+  function footnoteRefs(citations: Citation[]): string {
+    if (citations.length === 0) return ''
+    const refs = citations.map((c) => {
+      let index = seenUrls.get(c.url)
+      if (index === undefined) {
+        footnotes.push(c.url)
+        index = footnotes.length
+        seenUrls.set(c.url, index)
+      }
+      return `[^${index}]`
+    })
+    return ' ' + refs.join('')
+  }
+
+  const lines: string[] = []
+  lines.push('---')
+  lines.push(`uuid: ${conversation.uuid}`)
+  lines.push(`title: ${yamlString(conversation.displayName)}`)
+  if (options.project) lines.push(`project: ${yamlString(options.project.displayName)}`)
+  lines.push(`created_at: ${conversation.createdAt}`)
+  lines.push(`updated_at: ${conversation.updatedAt}`)
+  lines.push(`message_count: ${conversation.messages.length}`)
+  lines.push('---')
+  lines.push('')
+  lines.push(`# ${conversation.displayName}`)
+  lines.push('')
+
+  for (const message of conversation.messages) {
+    const speaker = message.sender === 'human' ? 'Вы' : 'Claude'
+    lines.push(`## ${speaker} · ${formatDate(message.createdAt)}`)
+    lines.push('')
+
+    if (message.isEmpty) {
+      lines.push('*(пустое сообщение)*')
+      lines.push('')
+      continue
+    }
+
+    for (const block of message.blocks) {
+      switch (block.kind) {
+        case 'text':
+          lines.push(block.text + footnoteRefs(block.citations))
+          lines.push('')
+          break
+        case 'thinking': {
+          if (options.includeThinking === false) break
+          const summary = block.summaries.join(' ') || block.text
+          if (summary) {
+            lines.push(`*Claude размышлял: ${summary}*`)
+            lines.push('')
+          }
+          break
+        }
+        case 'tool':
+          if (options.includeTools) {
+            lines.push(renderTool(block))
+            lines.push('')
+          }
+          break
+        case 'unknown':
+          if (options.includeTools) {
+            lines.push(renderUnknown(block))
+            lines.push('')
+          }
+          break
+      }
+    }
+  }
+
+  if (footnotes.length > 0) {
+    lines.push('---')
+    lines.push('')
+    footnotes.forEach((url, i) => lines.push(`[^${i + 1}]: ${url}`))
+    lines.push('')
+  }
+
+  return lines.join('\n')
+}
