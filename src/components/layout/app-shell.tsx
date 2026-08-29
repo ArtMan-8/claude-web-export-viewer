@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { Link, Outlet, useRouterState } from '@tanstack/react-router'
 import { LayoutDashboard, MessageSquare, FolderOpen, UserRound, RotateCcw } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import {
   Sidebar,
   SidebarContent,
@@ -17,16 +18,18 @@ import {
 } from '@/components/ui/sidebar'
 import { Separator } from '@/components/ui/separator'
 import { ThemeToggle } from './theme-toggle'
+import { LanguageToggle } from './language-toggle'
 import { useArchive } from '@/store/archive-store'
 
 const NAV_ITEMS = [
-  { to: '/', label: 'Дашборд', icon: LayoutDashboard },
-  { to: '/conversations', label: 'Беседы', icon: MessageSquare },
-  { to: '/projects', label: 'Проекты', icon: FolderOpen },
-  { to: '/account', label: 'Аккаунт', icon: UserRound },
+  { to: '/', labelKey: 'nav.dashboard', icon: LayoutDashboard },
+  { to: '/conversations', labelKey: 'nav.conversations', icon: MessageSquare },
+  { to: '/projects', labelKey: 'nav.projects', icon: FolderOpen },
+  { to: '/account', labelKey: 'nav.account', icon: UserRound },
 ] as const
 
 export function AppShell({ children }: { children?: ReactNode }) {
+  const { t } = useTranslation()
   const { reset } = useArchive()
   const pathname = useRouterState({ select: (s) => s.location.pathname })
 
@@ -38,7 +41,7 @@ export function AppShell({ children }: { children?: ReactNode }) {
       <Sidebar collapsible="icon">
         <SidebarHeader>
           <div className="flex items-center gap-2 px-2 py-1.5">
-            <span className="text-sm font-semibold">Архив Claude</span>
+            <span className="text-sm font-semibold">{t('app.title')}</span>
           </div>
         </SidebarHeader>
         <SidebarContent>
@@ -47,12 +50,13 @@ export function AppShell({ children }: { children?: ReactNode }) {
               <SidebarMenu>
                 {NAV_ITEMS.map((item) => {
                   const active = item.to === '/' ? pathname === '/' : pathname.startsWith(item.to)
+                  const label = t(item.labelKey)
                   return (
                     <SidebarMenuItem key={item.to}>
-                      <SidebarMenuButton asChild isActive={active} tooltip={item.label}>
+                      <SidebarMenuButton asChild isActive={active} tooltip={label}>
                         <Link to={item.to}>
                           <item.icon />
-                          <span>{item.label}</span>
+                          <span>{label}</span>
                         </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
@@ -65,9 +69,9 @@ export function AppShell({ children }: { children?: ReactNode }) {
         <SidebarFooter>
           <SidebarMenu>
             <SidebarMenuItem>
-              <SidebarMenuButton onClick={reset} tooltip="Загрузить другой архив">
+              <SidebarMenuButton onClick={reset} tooltip={t('nav.resetArchiveTooltip')}>
                 <RotateCcw />
-                <span>Другой архив</span>
+                <span>{t('nav.newArchive')}</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
@@ -78,6 +82,7 @@ export function AppShell({ children }: { children?: ReactNode }) {
           <SidebarTrigger />
           <Separator orientation="vertical" className="h-4" />
           <div className="flex-1" />
+          <LanguageToggle />
           <ThemeToggle />
         </header>
         <div className="flex-1 overflow-hidden">{children ?? <Outlet />}</div>
