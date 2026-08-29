@@ -1,11 +1,13 @@
 import { useCallback, useRef, useState, type DragEvent } from 'react'
 import { Archive as ArchiveIcon, Loader2, UploadCloud } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { useArchive } from '@/store/archive-store'
 
 /** Полноэкранный экран загрузки: показывается, пока архив не открыт. */
 export function ArchiveDropzone() {
+  const { t } = useTranslation()
   const { status, error, loadFromFiles } = useArchive()
   const [isDragging, setIsDragging] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -25,11 +27,8 @@ export function ArchiveDropzone() {
     <div className="flex min-h-svh flex-col items-center justify-center gap-6 bg-background p-6">
       <div className="flex flex-col items-center gap-2 text-center">
         <ArchiveIcon className="size-10 text-muted-foreground" strokeWidth={1.5} />
-        <h1 className="text-2xl font-semibold">Архив Claude</h1>
-        <p className="max-w-md text-sm text-muted-foreground">
-          Перетащите сюда файлы экспорта claude.ai — manifest-*.json и .zip-архивы (conversations, projects,
-          light_metadata) — или выберите их вручную. Всё обрабатывается локально в браузере.
-        </p>
+        <h1 className="text-2xl font-semibold">{t('dropzone.title')}</h1>
+        <p className="max-w-md text-sm text-muted-foreground">{t('dropzone.description')}</p>
       </div>
 
       <div
@@ -46,14 +45,14 @@ export function ArchiveDropzone() {
         {isLoading ? (
           <>
             <Loader2 className="size-8 animate-spin text-muted-foreground" />
-            <p className="text-sm text-muted-foreground">Разбираем архив…</p>
+            <p className="text-sm text-muted-foreground">{t('dropzone.parsing')}</p>
           </>
         ) : (
           <>
             <UploadCloud className="size-8 text-muted-foreground" strokeWidth={1.5} />
-            <p className="text-sm text-muted-foreground">Перетащите файлы сюда</p>
+            <p className="text-sm text-muted-foreground">{t('dropzone.dragHint')}</p>
             <Button variant="outline" onClick={() => inputRef.current?.click()}>
-              Выбрать файлы
+              {t('dropzone.chooseFiles')}
             </Button>
             <input
               ref={inputRef}
@@ -72,8 +71,8 @@ export function ArchiveDropzone() {
 
       {status === 'error' && error && (
         <Alert variant="destructive" className="max-w-md">
-          <AlertTitle>Не удалось загрузить архив</AlertTitle>
-          <AlertDescription>{error}</AlertDescription>
+          <AlertTitle>{t('dropzone.errorTitle')}</AlertTitle>
+          <AlertDescription>{t(`errors.${error.code}`, error.params)}</AlertDescription>
         </Alert>
       )}
     </div>

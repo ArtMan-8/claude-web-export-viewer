@@ -28,7 +28,6 @@ export type Block =
       kind: 'tool'
       toolUseId: string
       name: string
-      label: string
       input: unknown
       /** Текстовые фрагменты результата как есть (до склейки) — нужны для эвристики привязки к проекту */
       resultFragments: string[]
@@ -54,8 +53,6 @@ export interface Message {
 export interface Conversation {
   uuid: string
   name: string
-  /** Название для отображения — "Без названия" вместо пустой строки */
-  displayName: string
   summary: string
   createdAt: string
   updatedAt: string
@@ -69,7 +66,6 @@ export interface Conversation {
 export interface ProjectDoc {
   uuid: string
   filename: string
-  displayName: string
   content: string
   createdAt: string
 }
@@ -77,7 +73,6 @@ export interface ProjectDoc {
 export interface Project {
   uuid: string
   name: string
-  displayName: string
   description: string
   isPrivate: boolean
   isStarterProject: boolean
@@ -120,7 +115,8 @@ export interface ProjectLink {
 }
 
 export interface LoadWarning {
-  message: string
+  code: string
+  params?: Record<string, string | number>
   detail?: string
 }
 

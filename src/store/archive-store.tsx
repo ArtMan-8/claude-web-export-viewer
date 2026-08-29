@@ -1,15 +1,20 @@
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react'
 import { buildArchive } from '@/lib/archive/build-archive'
-import type { RawFileInput } from '@/lib/archive/load'
+import { ArchiveLoadError, type RawFileInput } from '@/lib/archive/load'
 import type { Archive } from '@/lib/archive/model'
 import { buildSearchIndex, type SearchEntry } from '@/lib/search'
 
 export type LoadStatus = 'idle' | 'loading' | 'ready' | 'error'
 
+export interface ArchiveLoadErrorInfo {
+  code: string
+  params?: Record<string, string | number>
+}
+
 interface ArchiveContextValue {
   archive: Archive | null
   status: LoadStatus
-  error: string | null
+  error: ArchiveLoadErrorInfo | null
   searchIndex: SearchEntry[]
   loadFromFiles(files: FileList | File[]): Promise<void>
   /** Пробует подхватить claude-data/ через dev-эндпоинт. Возвращает true, если что-то нашлось и загрузилось. */
@@ -32,7 +37,7 @@ async function fileToRawInput(file: File): Promise<RawFileInput> {
 export function ArchiveProvider({ children }: { children: ReactNode }) {
   const [archive, setArchive] = useState<Archive | null>(null)
   const [status, setStatus] = useState<LoadStatus>('idle')
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState<ArchiveLoadErrorInfo | null>(null)
 
   const applyFiles = useCallback(async (files: RawFileInput[]) => {
     setStatus('loading')
@@ -43,7 +48,8 @@ export function ArchiveProvider({ children }: { children: ReactNode }) {
       setStatus('ready')
     } catch (e) {
       setArchive(null)
-      setError(e instanceof Error ? e.message : String(e))
+      if (e instanceof ArchiveLoadError) setError({ code: e.code, params: e.params })
+      else setError({ code: 'unknown', params: { message: e instanceof Error ? e.message : String(e) } })
       setStatus('error')
     }
   }, [])

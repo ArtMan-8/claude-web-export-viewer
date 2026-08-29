@@ -1,12 +1,14 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from '@tanstack/react-router'
 import { AlertTriangle, ChevronDown, Download, FolderOpen } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { LINK_CHIP_CLASS } from '@/components/common/link-chip'
 import { buildThread, resolveDisplayPath } from '@/lib/archive/thread'
 import type { Conversation } from '@/lib/archive/model'
+import { displayNameOf } from '@/lib/display-name'
 import { conversationToMarkdown } from '@/lib/export/markdown'
 import { conversationToJson } from '@/lib/export/json'
 import { downloadText } from '@/lib/download'
@@ -20,13 +22,15 @@ function slugify(input: string): string {
       .toLowerCase()
       .replace(/[^\wа-яё0-9]+/gi, '-')
       .replace(/^-+|-+$/g, '')
-      .slice(0, 60) || 'без-названия'
+      .slice(0, 60) || 'chat'
   )
 }
 
 export function ConversationView({ conversation }: { conversation: Conversation }) {
+  const { t } = useTranslation()
   const { archive } = useArchive()
   const { showTools } = useSettings()
+  const conversationDisplayName = displayNameOf(conversation.name, t('common.untitled'))
   const [overrides, setOverrides] = useState<Record<string, string>>({})
 
   useEffect(() => setOverrides({}), [conversation.uuid])
@@ -47,7 +51,7 @@ export function ConversationView({ conversation }: { conversation: Conversation 
     setOverrides((prev) => ({ ...prev, [parentUuid]: childUuid }))
   }
 
-  const fileBase = slugify(conversation.displayName)
+  const fileBase = slugify(conversationDisplayName)
 
   const handleExportMarkdown = () => {
     const markdown = conversationToMarkdown(conversation, { includeTools: showTools, project })
@@ -68,10 +72,10 @@ export function ConversationView({ conversation }: { conversation: Conversation 
     <div className="flex h-full flex-col">
       <div className="flex items-center gap-3 border-b px-4 py-3">
         <div className="min-w-0 flex-1">
-          <h2 className="truncate text-sm font-semibold">{conversation.displayName}</h2>
+          <h2 className="truncate text-sm font-semibold">{conversationDisplayName}</h2>
           {project && (
             <Link to="/projects/$uuid" params={{ uuid: project.uuid }} className={`mt-1 ${LINK_CHIP_CLASS}`}>
-              <FolderOpen className="size-3 shrink-0" /> {project.displayName}
+              <FolderOpen className="size-3 shrink-0" /> {displayNameOf(project.name, t('common.untitled'))}
             </Link>
           )}
         </div>
@@ -79,14 +83,14 @@ export function ConversationView({ conversation }: { conversation: Conversation 
           <DropdownMenuTrigger asChild>
             <Button variant="outline" size="sm">
               <Download className="size-4" />
-              Экспорт
+              {t('conversation.export')}
               <ChevronDown className="size-3.5" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={handleExportMarkdown}>Markdown</DropdownMenuItem>
-            <DropdownMenuItem onClick={handleExportCleanMarkdown}>Markdown — только диалог</DropdownMenuItem>
-            <DropdownMenuItem onClick={handleExportJson}>JSON</DropdownMenuItem>
+            <DropdownMenuItem onClick={handleExportMarkdown}>{t('conversation.exportMarkdown')}</DropdownMenuItem>
+            <DropdownMenuItem onClick={handleExportCleanMarkdown}>{t('conversation.exportMarkdownClean')}</DropdownMenuItem>
+            <DropdownMenuItem onClick={handleExportJson}>{t('conversation.exportJson')}</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
@@ -94,13 +98,13 @@ export function ConversationView({ conversation }: { conversation: Conversation 
       {thread.warning && (
         <Alert className="m-3 mb-0" variant="destructive">
           <AlertTriangle />
-          <AlertDescription>{thread.warning}</AlertDescription>
+          <AlertDescription>{t(`errors.${thread.warning.code}`, thread.warning.params)}</AlertDescription>
         </Alert>
       )}
 
       <div className="min-h-0 flex-1">
         {conversation.isEmpty ? (
-          <p className="p-6 text-sm text-muted-foreground">В этой беседе нет сообщений.</p>
+          <p className="p-6 text-sm text-muted-foreground">{t('conversation.empty')}</p>
         ) : (
           <MessageList path={visiblePath} thread={thread} showTools={showTools} onSwitchBranch={handleSwitchBranch} />
         )}

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { AlertCircle, ChevronRight, Eye, FileCode, FolderSearch, Globe, Terminal, Wrench } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { Badge } from '@/components/ui/badge'
 import type { Block } from '@/lib/archive/model'
@@ -29,6 +30,7 @@ function inputSummary(input: unknown): string | null {
 }
 
 export function ToolBlock({ block }: { block: Extract<Block, { kind: 'tool' }> }) {
+  const { t } = useTranslation()
   const [open, setOpen] = useState(false)
   const Icon = TOOL_ICONS[block.name] ?? Wrench
   const summary = inputSummary(block.input)
@@ -38,11 +40,11 @@ export function ToolBlock({ block }: { block: Extract<Block, { kind: 'tool' }> }
       <CollapsibleTrigger className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm">
         <ChevronRight className={`size-3.5 shrink-0 text-muted-foreground transition-transform ${open ? 'rotate-90' : ''}`} />
         <Icon className="size-3.5 shrink-0 text-muted-foreground" />
-        <span className="font-medium">{block.label}</span>
+        <span className="font-medium">{t(`tools.${block.name}`, block.name)}</span>
         {summary && <span className="truncate text-muted-foreground">— {summary}</span>}
         {block.isError && (
           <Badge variant="destructive" className="ml-auto gap-1">
-            <AlertCircle className="size-3" /> ошибка
+            <AlertCircle className="size-3" /> {t('common.error')}
           </Badge>
         )}
       </CollapsibleTrigger>
@@ -63,7 +65,7 @@ export function ToolBlock({ block }: { block: Extract<Block, { kind: 'tool' }> }
                   rel="noreferrer"
                   className="font-medium text-foreground underline-offset-2 hover:underline"
                 >
-                  {source.title || hostnameOf(source.url)}
+                  {source.title || hostnameOf(source.url) || t('common.source')}
                 </a>
                 {source.domain && <span className="ml-1.5 text-xs text-muted-foreground">{source.domain}</span>}
                 {source.snippet && <p className="text-xs text-muted-foreground">{source.snippet}</p>}
@@ -78,7 +80,8 @@ export function ToolBlock({ block }: { block: Extract<Block, { kind: 'tool' }> }
 
         {!block.isPaired && (
           <p className="text-xs text-muted-foreground">
-            {block.input === undefined ? 'Результат без парного вызова инструмента' : 'Вызов без результата'} — данные архива неполны
+            {block.input === undefined ? t('conversation.resultWithoutCall') : t('conversation.callWithoutResult')} —{' '}
+            {t('conversation.incompleteData')}
           </p>
         )}
       </CollapsibleContent>

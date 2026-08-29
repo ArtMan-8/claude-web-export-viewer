@@ -2,11 +2,13 @@ import { useMemo, useRef, useState } from 'react'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { Link, useParams } from '@tanstack/react-router'
 import { AlertCircle, FolderOpen, Search } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { DEFAULT_SEARCH_SCOPE, runSearch, type SearchScope } from '@/lib/search'
+import { displayNameOf } from '@/lib/display-name'
 import { useArchive } from '@/store/archive-store'
 
 function formatDate(iso: string): string {
@@ -14,6 +16,7 @@ function formatDate(iso: string): string {
 }
 
 export function ConversationListPanel() {
+  const { t } = useTranslation()
   const { archive, searchIndex } = useArchive()
   const params = useParams({ strict: false })
   const activeUuid = (params as { uuid?: string }).uuid
@@ -34,7 +37,7 @@ export function ConversationListPanel() {
 
   const projectNameByConversation = useMemo(() => {
     if (!archive) return new Map<string, string>()
-    const nameByProject = new Map(archive.projects.map((p) => [p.uuid, p.displayName]))
+    const nameByProject = new Map(archive.projects.map((p) => [p.uuid, displayNameOf(p.name, t('common.untitled'))]))
     return new Map(
       archive.projectLinks
         .map((l): [string, string] | null => {
@@ -43,7 +46,7 @@ export function ConversationListPanel() {
         })
         .filter((entry): entry is [string, string] => entry !== null),
     )
-  }, [archive])
+  }, [archive, t])
 
   const rows = useMemo(() => {
     if (!archive) return []
@@ -66,7 +69,7 @@ export function ConversationListPanel() {
         <div className="relative">
           <Search className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-muted-foreground" />
           <Input
-            placeholder='tool/web_search from:2026-08-01 in:"проект"'
+            placeholder={t('conversation.searchPlaceholder')}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             className="pl-8"
@@ -76,10 +79,10 @@ export function ConversationListPanel() {
           <Tooltip>
             <TooltipTrigger asChild>
               <Button size="sm" variant={regexMode ? 'secondary' : 'ghost'} onClick={() => setRegexMode((v) => !v)}>
-                Regex
+                {t('conversation.regex')}
               </Button>
             </TooltipTrigger>
-            <TooltipContent>Считать текст в строке поиска регулярным выражением, а не обычной подстрокой</TooltipContent>
+            <TooltipContent>{t('conversation.regexTooltip')}</TooltipContent>
           </Tooltip>
           <Tooltip>
             <TooltipTrigger asChild>
@@ -88,10 +91,10 @@ export function ConversationListPanel() {
                 variant={scope.thinking ? 'secondary' : 'ghost'}
                 onClick={() => setScope((s) => ({ ...s, thinking: !s.thinking }))}
               >
-                Искать в размышлениях
+                {t('conversation.searchThinking')}
               </Button>
             </TooltipTrigger>
-            <TooltipContent>Дополнительно искать в кратких саммари размышлений Claude (thinking)</TooltipContent>
+            <TooltipContent>{t('conversation.searchThinkingTooltip')}</TooltipContent>
           </Tooltip>
           <Tooltip>
             <TooltipTrigger asChild>
@@ -100,13 +103,10 @@ export function ConversationListPanel() {
                 variant={scope.toolResults ? 'secondary' : 'ghost'}
                 onClick={() => setScope((s) => ({ ...s, toolResults: !s.toolResults }))}
               >
-                Искать в инструментах
+                {t('conversation.searchTools')}
               </Button>
             </TooltipTrigger>
-            <TooltipContent>
-              Дополнительно искать в результатах web_search, чтения страниц и других инструментов — это ~90% объёма
-              архива, поэтому выключено по умолчанию
-            </TooltipContent>
+            <TooltipContent>{t('conversation.searchToolsTooltip')}</TooltipContent>
           </Tooltip>
         </div>
         {outcome.regexError && (
@@ -118,7 +118,7 @@ export function ConversationListPanel() {
 
       <div ref={parentRef} className="min-h-0 flex-1 overflow-y-auto">
         {rows.length === 0 ? (
-          <p className="p-4 text-sm text-muted-foreground">Ничего не найдено</p>
+          <p className="p-4 text-sm text-muted-foreground">{t('conversation.nothingFound')}</p>
         ) : (
           <div style={{ height: virtualizer.getTotalSize(), position: 'relative' }}>
             {virtualizer.getVirtualItems().map((row) => {
@@ -137,7 +137,9 @@ export function ConversationListPanel() {
                   }`}
                 >
                   <div className="flex items-center gap-2">
-                    <span className="truncate text-sm font-medium">{conversation.displayName}</span>
+                    <span className="truncate text-sm font-medium">
+                      {displayNameOf(conversation.name, t('common.untitled'))}
+                    </span>
                     {typeof matchCount === 'number' && query.trim() && (
                       <Badge variant="secondary" className="ml-auto shrink-0 text-xs">
                         {matchCount}
@@ -146,7 +148,7 @@ export function ConversationListPanel() {
                   </div>
                   <div className="flex items-center gap-2 text-xs text-muted-foreground">
                     <span>{formatDate(conversation.createdAt)}</span>
-                    <span>· {conversation.messages.length} сообщ.</span>
+                    <span>· {t('conversation.messagesCountShort', { count: conversation.messages.length })}</span>
                     {projectName && (
                       <span className="flex items-center gap-0.5 truncate">
                         <FolderOpen className="size-3 shrink-0" /> {projectName}

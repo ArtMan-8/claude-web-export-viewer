@@ -1,4 +1,6 @@
+import i18next from 'i18next'
 import type { Block, Citation, Conversation, Project } from '@/lib/archive/model'
+import { displayNameOf } from '@/lib/display-name'
 
 export interface MarkdownExportOptions {
   /** Показывать блоки инструментов (tool_use/tool_result) — по умолчанию скрыты, это ~90% объёма архива */
@@ -19,7 +21,8 @@ function yamlString(value: string): string {
 
 function renderTool(block: Extract<Block, { kind: 'tool' }>): string {
   const parts: string[] = []
-  const summary = block.isError ? `⚠️ ${block.label} (ошибка)` : block.label
+  const label = i18next.t(`tools.${block.name}`, block.name)
+  const summary = block.isError ? `⚠️ ${label} (${i18next.t('common.error')})` : label
 
   parts.push(`<details>\n<summary>${summary}</summary>\n`)
 
@@ -31,7 +34,7 @@ function renderTool(block: Extract<Block, { kind: 'tool' }>): string {
     parts.push(
       '\n' +
         block.sources
-          .map((s) => `- [${s.title || s.url}](${s.url})${s.snippet ? ` — ${s.snippet}` : ''}`)
+          .map((s) => `- [${s.title || s.url || i18next.t('common.source')}](${s.url})${s.snippet ? ` — ${s.snippet}` : ''}`)
           .join('\n') +
         '\n',
     )
@@ -45,7 +48,7 @@ function renderTool(block: Extract<Block, { kind: 'tool' }>): string {
 
 function renderUnknown(block: Extract<Block, { kind: 'unknown' }>): string {
   return (
-    `<details>\n<summary>Нераспознанный блок: ${block.blockType}</summary>\n\n` +
+    `<details>\n<summary>${i18next.t('common.unknownBlock', { type: block.blockType })}</summary>\n\n` +
     '```json\n' +
     JSON.stringify(block.raw, null, 2) +
     '\n```\n\n</details>'
@@ -76,26 +79,30 @@ export function conversationToMarkdown(conversation: Conversation, options: Mark
     return ' ' + refs.join('')
   }
 
+  const conversationTitle = displayNameOf(conversation.name, i18next.t('common.untitled'))
+
   const lines: string[] = []
   lines.push('---')
   lines.push(`uuid: ${conversation.uuid}`)
-  lines.push(`title: ${yamlString(conversation.displayName)}`)
-  if (options.project) lines.push(`project: ${yamlString(options.project.displayName)}`)
+  lines.push(`title: ${yamlString(conversationTitle)}`)
+  if (options.project) {
+    lines.push(`project: ${yamlString(displayNameOf(options.project.name, i18next.t('common.untitled')))}`)
+  }
   lines.push(`created_at: ${conversation.createdAt}`)
   lines.push(`updated_at: ${conversation.updatedAt}`)
   lines.push(`message_count: ${conversation.messages.length}`)
   lines.push('---')
   lines.push('')
-  lines.push(`# ${conversation.displayName}`)
+  lines.push(`# ${conversationTitle}`)
   lines.push('')
 
   for (const message of conversation.messages) {
-    const speaker = message.sender === 'human' ? 'Вы' : 'Claude'
+    const speaker = message.sender === 'human' ? i18next.t('export.speakerHuman') : i18next.t('export.speakerClaude')
     lines.push(`## ${speaker} · ${formatDate(message.createdAt)}`)
     lines.push('')
 
     if (message.isEmpty) {
-      lines.push('*(пустое сообщение)*')
+      lines.push(i18next.t('export.emptyMessage'))
       lines.push('')
       continue
     }
@@ -110,7 +117,7 @@ export function conversationToMarkdown(conversation: Conversation, options: Mark
           if (options.includeThinking === false) break
           const summary = block.summaries.join(' ') || block.text
           if (summary) {
-            lines.push(`*Claude размышлял: ${summary}*`)
+            lines.push(i18next.t('export.thinkingSummary', { summary }))
             lines.push('')
           }
           break

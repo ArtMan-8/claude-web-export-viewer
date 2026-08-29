@@ -22,6 +22,18 @@ export interface LoadedRawData {
   warnings: LoadWarning[]
 }
 
+/** Ошибка загрузки архива с кодом для перевода в UI (см. ru.json/en.json → errors.*). */
+export class ArchiveLoadError extends Error {
+  code: string
+  params?: Record<string, string | number>
+
+  constructor(code: string, params?: Record<string, string | number>) {
+    super(code)
+    this.code = code
+    this.params = params
+  }
+}
+
 const decoder = new TextDecoder('utf-8')
 
 function isManifestFilename(name: string): boolean {
@@ -49,7 +61,8 @@ function collectJsonEntries(files: RawFileInput[], warnings: LoadWarning[]): Raw
         }
       } catch (error) {
         warnings.push({
-          message: `Не удалось распаковать ${file.name}`,
+          code: 'unzipFailed',
+          params: { file: file.name },
           detail: error instanceof Error ? error.message : String(error),
         })
       }
@@ -61,7 +74,7 @@ function collectJsonEntries(files: RawFileInput[], warnings: LoadWarning[]): Raw
       continue
     }
 
-    warnings.push({ message: `Файл ${file.name} пропущен: не .zip и не .json` })
+    warnings.push({ code: 'fileSkipped', params: { file: file.name } })
   }
 
   return entries
@@ -72,7 +85,8 @@ function parseJson(entry: RawFileInput, warnings: LoadWarning[]): unknown | unde
     return JSON.parse(decoder.decode(entry.bytes))
   } catch (error) {
     warnings.push({
-      message: `Не удалось разобрать JSON в ${entry.name}`,
+      code: 'jsonParseFailed',
+      params: { file: entry.name },
       detail: error instanceof Error ? error.message : String(error),
     })
     return undefined
@@ -124,7 +138,7 @@ function classifyAndCollect(
       return
     }
 
-    warnings.push({ message: `Неизвестный формат массива в ${entryName}` })
+    warnings.push({ code: 'unknownArrayFormat', params: { file: entryName } })
     return
   }
 
@@ -142,11 +156,11 @@ function classifyAndCollect(
       return
     }
 
-    warnings.push({ message: `Неизвестный формат объекта в ${entryName}` })
+    warnings.push({ code: 'unknownObjectFormat', params: { file: entryName } })
     return
   }
 
-  warnings.push({ message: `Неожиданное содержимое в ${entryName}` })
+  warnings.push({ code: 'unknownContent', params: { file: entryName } })
 }
 
 /** Загружает и классифицирует набор файлов экспорта (zip и/или json) в сырые коллекции. */
@@ -173,13 +187,15 @@ export function loadRawArchive(files: RawFileInput[]): LoadedRawData {
       for (const entry of manifest.entries) {
         if (!providedNames.has(entry.filename)) {
           warnings.push({
-            message: `Манифест ссылается на ${entry.filename} (${entry.category}), но этот файл не был загружен`,
+            code: 'manifestEntryMissing',
+            params: { file: entry.filename, category: entry.category },
           })
         }
       }
     } catch (error) {
       warnings.push({
-        message: `Не удалось разобрать манифест ${manifestFile.name}`,
+        code: 'manifestParseFailed',
+        params: { file: manifestFile.name },
         detail: error instanceof Error ? error.message : String(error),
       })
     }
@@ -199,9 +215,7 @@ export function loadRawArchive(files: RawFileInput[]): LoadedRawData {
     out.users.length === 0 &&
     out.loginEvents.length === 0
   ) {
-    throw new Error(
-      'В загруженных файлах не найдено ни бесед, ни проектов, ни метаданных аккаунта. Проверьте, что выбраны файлы экспорта claude.ai.',
-    )
+    throw new ArchiveLoadError('archiveEmpty')
   }
 
   return out

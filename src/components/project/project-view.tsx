@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from '@tanstack/react-router'
 import { ChevronDown, Download, FileText, MessageSquare } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
@@ -9,13 +10,16 @@ import { Markdown } from '@/components/common/markdown'
 import { LINK_CHIP_CLASS } from '@/components/common/link-chip'
 import { ScrollToTopButton } from '@/components/common/scroll-to-top-button'
 import type { Project } from '@/lib/archive/model'
+import { displayNameOf } from '@/lib/display-name'
 import { projectToJson } from '@/lib/export/json'
 import { buildProjectDocsZip } from '@/lib/export/zip-all'
 import { downloadBytes, downloadText } from '@/lib/download'
 import { useArchive } from '@/store/archive-store'
 
 export function ProjectView({ project }: { project: Project }) {
+  const { t } = useTranslation()
   const { archive } = useArchive()
+  const projectDisplayName = displayNameOf(project.name, t('common.untitled'))
   const [filter, setFilter] = useState('')
   const [selectedDocUuid, setSelectedDocUuid] = useState(project.docs[0]?.uuid ?? null)
   const [promptOpen, setPromptOpen] = useState(false)
@@ -33,7 +37,7 @@ export function ProjectView({ project }: { project: Project }) {
     const needle = filter.trim().toLowerCase()
     if (!needle) return project.docs
     return project.docs.filter(
-      (doc) => doc.displayName.toLowerCase().includes(needle) || doc.content.toLowerCase().includes(needle),
+      (doc) => doc.filename.toLowerCase().includes(needle) || doc.content.toLowerCase().includes(needle),
     )
   }, [project.docs, filter])
 
@@ -46,32 +50,32 @@ export function ProjectView({ project }: { project: Project }) {
   }, [archive, project.uuid])
 
   const handleExport = () => {
-    downloadText(`${project.displayName}.json`, projectToJson(project), 'application/json;charset=utf-8')
+    downloadText(`${projectDisplayName}.json`, projectToJson(project), 'application/json;charset=utf-8')
   }
 
   const handleExportDocsZip = () => {
-    downloadBytes(`${project.displayName}-docs.zip`, buildProjectDocsZip(project))
+    downloadBytes(`${projectDisplayName}-docs.zip`, buildProjectDocsZip(project))
   }
 
   return (
     <div className="flex h-full flex-col overflow-y-auto">
       <div className="flex items-start gap-3 border-b px-4 py-3">
         <div className="min-w-0 flex-1">
-          <h2 className="text-sm font-semibold">{project.displayName}</h2>
+          <h2 className="text-sm font-semibold">{projectDisplayName}</h2>
           {project.description && <p className="mt-1 text-sm text-muted-foreground">{project.description}</p>}
         </div>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" size="sm">
               <Download className="size-4" />
-              Экспорт
+              {t('project.export')}
               <ChevronDown className="size-3.5" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={handleExport}>JSON</DropdownMenuItem>
             {project.docs.length > 0 && (
-              <DropdownMenuItem onClick={handleExportDocsZip}>Документы (.zip)</DropdownMenuItem>
+              <DropdownMenuItem onClick={handleExportDocsZip}>{t('project.exportDocsZip')}</DropdownMenuItem>
             )}
           </DropdownMenuContent>
         </DropdownMenu>
@@ -81,7 +85,7 @@ export function ProjectView({ project }: { project: Project }) {
         <Collapsible open={promptOpen} onOpenChange={setPromptOpen} className="border-b px-4 py-2">
           <CollapsibleTrigger className="flex items-center gap-1 text-sm font-medium text-muted-foreground">
             <ChevronDown className={`size-3.5 transition-transform ${promptOpen ? '' : '-rotate-90'}`} />
-            Пользовательские инструкции проекта
+            {t('project.userInstructions')}
           </CollapsibleTrigger>
           <CollapsibleContent className="pt-2">
             <Markdown>{project.promptTemplate}</Markdown>
@@ -91,11 +95,11 @@ export function ProjectView({ project }: { project: Project }) {
 
       {linkedConversations.length > 0 && (
         <div className="border-b px-4 py-2">
-          <p className="mb-1 text-sm font-medium text-muted-foreground">Беседы этого проекта (определено по документам)</p>
+          <p className="mb-1 text-sm font-medium text-muted-foreground">{t('project.linkedConversations')}</p>
           <div className="flex flex-wrap gap-2">
             {linkedConversations.map((c) => (
               <Link key={c.uuid} to="/conversations/$uuid" params={{ uuid: c.uuid }} className={LINK_CHIP_CLASS}>
-                <MessageSquare className="size-3 shrink-0" /> {c.displayName}
+                <MessageSquare className="size-3 shrink-0" /> {displayNameOf(c.name, t('common.untitled'))}
               </Link>
             ))}
           </div>
@@ -105,11 +109,11 @@ export function ProjectView({ project }: { project: Project }) {
       <div className="flex min-h-0 flex-1">
         <div className="flex w-72 shrink-0 flex-col border-r">
           <div className="border-b p-2">
-            <Input placeholder="Поиск по документам" value={filter} onChange={(e) => setFilter(e.target.value)} />
+            <Input placeholder={t('project.searchDocs')} value={filter} onChange={(e) => setFilter(e.target.value)} />
           </div>
           <div className="flex-1 overflow-y-auto">
             {filteredDocs.length === 0 ? (
-              <p className="p-3 text-sm text-muted-foreground">Документы не найдены</p>
+              <p className="p-3 text-sm text-muted-foreground">{t('project.noDocsFound')}</p>
             ) : (
               filteredDocs.map((doc) => (
                 <button
@@ -121,7 +125,7 @@ export function ProjectView({ project }: { project: Project }) {
                   }`}
                 >
                   <FileText className="size-3.5 shrink-0 text-muted-foreground" />
-                  <span className="truncate">{doc.displayName}</span>
+                  <span className="truncate">{displayNameOf(doc.filename, t('common.noName'))}</span>
                 </button>
               ))
             )}
@@ -133,7 +137,7 @@ export function ProjectView({ project }: { project: Project }) {
             {selectedDoc ? (
               <Markdown>{selectedDoc.content}</Markdown>
             ) : (
-              <p className="text-sm text-muted-foreground">В этом проекте нет документов</p>
+              <p className="text-sm text-muted-foreground">{t('project.noDocsInProject')}</p>
             )}
           </div>
           <ScrollToTopButton scrollRef={docScrollRef} />

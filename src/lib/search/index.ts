@@ -106,7 +106,7 @@ export function runSearch(
   const matcher = compileTextMatcher(parsed.text, options.regexMode)
   if (matcher.error) return { results: [], regexError: matcher.error }
 
-  const projectNameByUuid = new Map(projects.map((p) => [p.uuid, p.displayName]))
+  const projectNameByUuid = new Map(projects.map((p) => [p.uuid, p.name]))
   const projectUuidByConversation = new Map(projectLinks.map((l) => [l.conversationUuid, l.projectUuid]))
 
   const fromTs = parsed.from ? toTimestamp(parsed.from, false) : null

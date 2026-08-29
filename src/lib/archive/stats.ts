@@ -1,9 +1,7 @@
 import type { Archive } from './model'
-import { TOOL_LABELS } from './normalize'
 
 export interface ToolUsage {
   name: string
-  label: string
   count: number
 }
 
@@ -44,7 +42,7 @@ export function computeStats(archive: Archive): ArchiveStats {
 
   const topTools = [...toolCounts.entries()]
     .sort((a, b) => b[1] - a[1])
-    .map(([name, count]) => ({ name, label: TOOL_LABELS[name] ?? name, count }))
+    .map(([name, count]) => ({ name, count }))
 
   let docCount = 0
   let docsCharacters = 0

@@ -19,17 +19,6 @@ import type {
   UserProfile,
 } from './model'
 
-/** Человекочитаемые подписи известных инструментов. Неизвестное имя показывается как есть. */
-export const TOOL_LABELS: Record<string, string> = {
-  web_search: 'Поиск в вебе',
-  web_fetch: 'Открытие страницы',
-  project_knowledge_search: 'Поиск по проекту',
-  bash_tool: 'Терминал',
-  view: 'Просмотр файла',
-  artifacts: 'Артефакт',
-  repl: 'Код (REPL)',
-}
-
 function isObject(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
@@ -76,7 +65,7 @@ function extractSources(result: RawToolResultBlock): KnowledgeSource[] {
         const url = typeof item.url === 'string' ? item.url : ''
         const metadata = isObject(item.metadata) ? item.metadata : undefined
         sources.push({
-          title: typeof item.title === 'string' && item.title ? item.title : url || 'Источник',
+          title: typeof item.title === 'string' && item.title ? item.title : url,
           url,
           domain: (metadata?.site_domain as string | undefined) ?? domainFromUrl(url),
           snippet: typeof item.text === 'string' ? item.text : '',
@@ -91,7 +80,7 @@ function extractSources(result: RawToolResultBlock): KnowledgeSource[] {
     if (isObject(link)) {
       const url = typeof link.url === 'string' ? link.url : ''
       sources.push({
-        title: typeof link.title === 'string' && link.title ? link.title : url || 'Источник',
+        title: typeof link.title === 'string' && link.title ? link.title : url,
         url,
         domain: domainFromUrl(url),
         snippet: Array.isArray(link.subtitles) ? link.subtitles.join(' · ') : '',
@@ -147,7 +136,6 @@ function normalizeBlocks(rawBlocks: RawContentBlock[]): Block[] {
           kind: 'tool',
           toolUseId: use.id,
           name: use.name,
-          label: TOOL_LABELS[use.name] ?? use.name,
           input: use.input,
           resultFragments: fragments,
           resultText: fragments.join('\n\n'),
@@ -166,7 +154,6 @@ function normalizeBlocks(rawBlocks: RawContentBlock[]): Block[] {
           kind: 'tool',
           toolUseId: result.tool_use_id,
           name: result.name,
-          label: TOOL_LABELS[result.name] ?? result.name,
           input: undefined,
           resultFragments: fragments,
           resultText: fragments.join('\n\n'),
@@ -207,7 +194,6 @@ export function normalizeConversation(raw: RawConversation): Conversation {
   return {
     uuid: raw.uuid,
     name: raw.name ?? '',
-    displayName: raw.name?.trim() ? raw.name : 'Без названия',
     summary: raw.summary ?? '',
     createdAt: raw.created_at,
     updatedAt: raw.updated_at,
@@ -227,7 +213,6 @@ export function normalizeProject(raw: RawProject): Project {
     .map((doc) => ({
       uuid: doc.uuid,
       filename: doc.filename ?? '',
-      displayName: doc.filename?.trim() ? doc.filename : 'Без имени',
       content: doc.content ?? '',
       createdAt: doc.created_at,
     }))
@@ -238,7 +223,6 @@ export function normalizeProject(raw: RawProject): Project {
   return {
     uuid: raw.uuid,
     name: raw.name ?? '',
-    displayName: raw.name?.trim() ? raw.name : 'Без названия',
     description,
     isPrivate: Boolean(raw.is_private),
     isStarterProject: Boolean(raw.is_starter_project),

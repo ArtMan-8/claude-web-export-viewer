@@ -79,7 +79,9 @@ describe('loadRawArchive', () => {
 
     const result = loadRawArchive([manifest, conversationsZip])
 
-    expect(result.warnings.some((w) => w.message.includes('projects-000.zip'))).toBe(true)
+    expect(result.warnings.some((w) => w.code === 'manifestEntryMissing' && w.params?.file === 'projects-000.zip')).toBe(
+      true,
+    )
   })
 
   it('не падает на битом JSON, а копит предупреждение и продолжает', () => {
@@ -89,7 +91,7 @@ describe('loadRawArchive', () => {
     const result = loadRawArchive([broken, good])
 
     expect(result.conversations).toHaveLength(1)
-    expect(result.warnings.some((w) => w.message.includes('broken.json'))).toBe(true)
+    expect(result.warnings.some((w) => w.code === 'jsonParseFailed' && w.params?.file === 'broken.json')).toBe(true)
   })
 
   it('бросает ошибку, если не найдено вообще ничего узнаваемого', () => {

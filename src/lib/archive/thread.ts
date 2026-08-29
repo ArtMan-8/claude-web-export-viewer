@@ -1,4 +1,4 @@
-import type { Message } from './model'
+import type { LoadWarning, Message } from './model'
 
 const ROOT_KEY = '__root__'
 
@@ -9,7 +9,7 @@ export interface ThreadResult {
   branches: Map<string, Message[]>
   /** true — дерево не построено (циклы/битые ссылки на parent_message_uuid) */
   fallbackToArrayOrder: boolean
-  warning: string | null
+  warning: LoadWarning | null
   /**
    * Продолжение пути от произвольного сообщения той же логикой выбора «самой
    * свежей» ветки — нужно переключателю веток в UI: пользователь выбирает
@@ -24,7 +24,7 @@ function timestamp(message: Message): number {
   return Number.isNaN(value) ? 0 : value
 }
 
-function fallback(messages: Message[], warning: string): ThreadResult {
+function fallback(messages: Message[], warning: LoadWarning): ThreadResult {
   return {
     mainBranch: [...messages].sort((a, b) => timestamp(a) - timestamp(b)),
     branches: new Map(),
@@ -57,7 +57,7 @@ export function buildThread(messages: Message[]): ThreadResult {
 
   const roots = childrenByParent.get(ROOT_KEY) ?? []
   if (roots.length === 0) {
-    return fallback(messages, 'Не удалось определить начало беседы — сообщения показаны в порядке из файла экспорта.')
+    return fallback(messages, { code: 'noThreadRoot' })
   }
 
   // Полный обход всех веток — только для проверки достижимости (циклы/сироты).
@@ -74,10 +74,7 @@ export function buildThread(messages: Message[]): ThreadResult {
 
   if (reachable.size !== messages.length) {
     const lost = messages.length - reachable.size
-    return fallback(
-      messages,
-      `Обнаружены недостижимые сообщения (${lost} шт.) — возможен цикл или битая ссылка parent_message_uuid. Показан порядок из файла экспорта.`,
-    )
+    return fallback(messages, { code: 'unreachableMessages', params: { count: lost } })
   }
 
   const subtreeMaxMemo = new Map<string, number>()

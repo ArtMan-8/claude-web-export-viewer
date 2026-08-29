@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 import { Download, MessageSquare, FolderOpen, FileText, AlertTriangle } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -16,6 +17,7 @@ function formatDate(iso: string): string {
 }
 
 export function DashboardPage() {
+  const { t } = useTranslation()
   const { archive } = useArchive()
   const { showTools } = useSettings()
   const stats = useMemo(() => (archive ? computeStats(archive) : null), [archive])
@@ -30,23 +32,25 @@ export function DashboardPage() {
   return (
     <div className="mx-auto flex max-w-4xl flex-col gap-6 p-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold">Дашборд</h1>
+        <h1 className="text-xl font-semibold">{t('dashboard.title')}</h1>
         <Button onClick={handleExportAll}>
           <Download />
-          Экспортировать всё
+          {t('dashboard.exportAll')}
         </Button>
       </div>
 
       {archive.warnings.length > 0 && (
         <Alert>
           <AlertTriangle />
-          <AlertTitle>Есть предупреждения при загрузке архива ({archive.warnings.length})</AlertTitle>
+          <AlertTitle>{t('dashboard.warningsTitle', { count: archive.warnings.length })}</AlertTitle>
           <AlertDescription>
             <ul className="list-inside list-disc">
               {archive.warnings.slice(0, 5).map((w, i) => (
-                <li key={i}>{w.message}</li>
+                <li key={i}>{t(`errors.${w.code}`, w.params)}</li>
               ))}
-              {archive.warnings.length > 5 && <li>…и ещё {archive.warnings.length - 5}</li>}
+              {archive.warnings.length > 5 && (
+                <li>{t('dashboard.andMore', { count: archive.warnings.length - 5 })}</li>
+              )}
             </ul>
           </AlertDescription>
         </Alert>
@@ -56,19 +60,21 @@ export function DashboardPage() {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-              <MessageSquare className="size-4" /> Беседы
+              <MessageSquare className="size-4" /> {t('dashboard.conversations')}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-semibold">{stats.conversationCount}</div>
             {stats.emptyConversationCount > 0 && (
-              <p className="text-xs text-muted-foreground">из них пустых: {stats.emptyConversationCount}</p>
+              <p className="text-xs text-muted-foreground">
+                {t('dashboard.emptyOfThem', { count: stats.emptyConversationCount })}
+              </p>
             )}
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Сообщения</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">{t('dashboard.messages')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-semibold">{stats.messageCount}</div>
@@ -77,7 +83,7 @@ export function DashboardPage() {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-              <FolderOpen className="size-4" /> Проекты
+              <FolderOpen className="size-4" /> {t('dashboard.projects')}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -87,19 +93,21 @@ export function DashboardPage() {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-              <FileText className="size-4" /> Документы
+              <FileText className="size-4" /> {t('dashboard.documents')}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-semibold">{stats.docCount}</div>
-            <p className="text-xs text-muted-foreground">{(stats.docsCharacters / 1000).toFixed(0)} тыс. символов</p>
+            <p className="text-xs text-muted-foreground">
+              {t('dashboard.thousandChars', { count: (stats.docsCharacters / 1000).toFixed(0) })}
+            </p>
           </CardContent>
         </Card>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm font-medium text-muted-foreground">Диапазон дат</CardTitle>
+          <CardTitle className="text-sm font-medium text-muted-foreground">{t('dashboard.dateRange')}</CardTitle>
         </CardHeader>
         <CardContent>
           {stats.dateRange ? (
@@ -107,23 +115,23 @@ export function DashboardPage() {
               {formatDate(stats.dateRange.from)} — {formatDate(stats.dateRange.to)}
             </p>
           ) : (
-            <p className="text-sm text-muted-foreground">Нет данных</p>
+            <p className="text-sm text-muted-foreground">{t('dashboard.noData')}</p>
           )}
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm font-medium text-muted-foreground">Инструменты</CardTitle>
+          <CardTitle className="text-sm font-medium text-muted-foreground">{t('dashboard.tools')}</CardTitle>
         </CardHeader>
         <CardContent>
           {stats.topTools.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Инструменты не использовались</p>
+            <p className="text-sm text-muted-foreground">{t('dashboard.toolsNotUsed')}</p>
           ) : (
             <div className="flex flex-wrap gap-2">
               {stats.topTools.map((tool) => (
                 <Badge key={tool.name} variant="secondary">
-                  {tool.label} × {tool.count}
+                  {t(`tools.${tool.name}`, tool.name)} × {tool.count}
                 </Badge>
               ))}
             </div>

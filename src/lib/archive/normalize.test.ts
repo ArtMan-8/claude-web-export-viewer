@@ -66,7 +66,6 @@ describe('normalizeConversation', () => {
     expect(block).toMatchObject({
       kind: 'tool',
       name: 'web_search',
-      label: 'Поиск в вебе',
       isPaired: true,
       isError: false,
     })
@@ -98,7 +97,7 @@ describe('normalizeConversation', () => {
     const emptyConv = makeConversation({ name: '', chat_messages: [] })
     const resultEmpty = normalizeConversation(emptyConv)
     expect(resultEmpty.isEmpty).toBe(true)
-    expect(resultEmpty.displayName).toBe('Без названия')
+    expect(resultEmpty.name).toBe('')
   })
 
   it('беседа, где каждое сообщение пусто по отдельности, тоже считается пустой целиком', () => {
