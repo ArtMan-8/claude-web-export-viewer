@@ -1,0 +1,87 @@
+import { useState } from 'react'
+import { AlertCircle, ChevronRight, Eye, FileCode, FolderSearch, Globe, Terminal, Wrench } from 'lucide-react'
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
+import { Badge } from '@/components/ui/badge'
+import type { Block } from '@/lib/archive/model'
+
+const TOOL_ICONS: Record<string, typeof Wrench> = {
+  web_search: Globe,
+  web_fetch: Globe,
+  project_knowledge_search: FolderSearch,
+  bash_tool: Terminal,
+  view: Eye,
+  artifacts: FileCode,
+}
+
+function hostnameOf(url: string): string {
+  try {
+    return new URL(url).hostname.replace(/^www\./, '')
+  } catch {
+    return url
+  }
+}
+
+function inputSummary(input: unknown): string | null {
+  if (!input || typeof input !== 'object') return null
+  const record = input as Record<string, unknown>
+  const value = record.query ?? record.url ?? record.command ?? record.path ?? record.description
+  return typeof value === 'string' ? value : null
+}
+
+export function ToolBlock({ block }: { block: Extract<Block, { kind: 'tool' }> }) {
+  const [open, setOpen] = useState(false)
+  const Icon = TOOL_ICONS[block.name] ?? Wrench
+  const summary = inputSummary(block.input)
+
+  return (
+    <Collapsible open={open} onOpenChange={setOpen} className="rounded-md border bg-muted/40">
+      <CollapsibleTrigger className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm">
+        <ChevronRight className={`size-3.5 shrink-0 text-muted-foreground transition-transform ${open ? 'rotate-90' : ''}`} />
+        <Icon className="size-3.5 shrink-0 text-muted-foreground" />
+        <span className="font-medium">{block.label}</span>
+        {summary && <span className="truncate text-muted-foreground">— {summary}</span>}
+        {block.isError && (
+          <Badge variant="destructive" className="ml-auto gap-1">
+            <AlertCircle className="size-3" /> ошибка
+          </Badge>
+        )}
+      </CollapsibleTrigger>
+      <CollapsibleContent className="space-y-2 px-3 pb-3 text-sm">
+        {block.input !== undefined && (
+          <pre className="overflow-x-auto rounded bg-background p-2 text-xs">
+            {JSON.stringify(block.input, null, 2)}
+          </pre>
+        )}
+
+        {block.sources.length > 0 ? (
+          <ul className="space-y-1.5">
+            {block.sources.map((source, i) => (
+              <li key={`${source.url}-${i}`} className="text-sm">
+                <a
+                  href={source.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="font-medium text-foreground underline-offset-2 hover:underline"
+                >
+                  {source.title || hostnameOf(source.url)}
+                </a>
+                {source.domain && <span className="ml-1.5 text-xs text-muted-foreground">{source.domain}</span>}
+                {source.snippet && <p className="text-xs text-muted-foreground">{source.snippet}</p>}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          block.resultText && (
+            <pre className="overflow-x-auto whitespace-pre-wrap rounded bg-background p-2 text-xs">{block.resultText}</pre>
+          )
+        )}
+
+        {!block.isPaired && (
+          <p className="text-xs text-muted-foreground">
+            {block.input === undefined ? 'Результат без парного вызова инструмента' : 'Вызов без результата'} — данные архива неполны
+          </p>
+        )}
+      </CollapsibleContent>
+    </Collapsible>
+  )
+}
