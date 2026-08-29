@@ -1,8 +1,20 @@
 {
-  "name": "claude-archive-read",
+  "name": "claude-web-export-viewer",
   "private": true,
-  "version": "0.1.0",
+  "version": "1.0.0",
+  "license": "MIT",
   "type": "module",
+  "keywords": [
+    "claude",
+    "claude-ai",
+    "anthropic",
+    "data-export",
+    "export-viewer",
+    "conversation-viewer",
+    "chat-history",
+    "offline-viewer",
+    "privacy"
+  ],
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
