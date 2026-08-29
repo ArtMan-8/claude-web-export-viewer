@@ -1,0 +1,22 @@
+# Персональные данные экспорта — в git не попадают никогда
+claude-data/
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# сгенерировано @tanstack/router-plugin
+src/routeTree.gen.ts
+
+.vite
+node_modules/.tmp
+
+logs
+*.log
+npm-debug.log*
+
+.DS_Store
+.idea
+.vscode/*
+!.vscode/extensions.json
