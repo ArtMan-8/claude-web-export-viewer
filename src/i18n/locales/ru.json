@@ -1,0 +1,138 @@
+{
+  "app": {
+    "title": "Архив Claude"
+  },
+  "nav": {
+    "dashboard": "Дашборд",
+    "conversations": "Беседы",
+    "projects": "Проекты",
+    "account": "Аккаунт",
+    "newArchive": "Другой архив",
+    "resetArchiveTooltip": "Загрузить другой архив"
+  },
+  "theme": {
+    "system": "Тема: системная",
+    "light": "Тема: светлая",
+    "dark": "Тема: тёмная"
+  },
+  "language": {
+    "toggle": "Язык: {{language}}",
+    "ru": "Русский",
+    "en": "English"
+  },
+  "dropzone": {
+    "title": "Архив Claude",
+    "description": "Перетащите сюда файлы экспорта claude.ai — manifest-*.json и .zip-архивы (conversations, projects, light_metadata) — или выберите их вручную. Всё обрабатывается локально в браузере.",
+    "parsing": "Разбираем архив…",
+    "dragHint": "Перетащите файлы сюда",
+    "chooseFiles": "Выбрать файлы",
+    "errorTitle": "Не удалось загрузить архив"
+  },
+  "dashboard": {
+    "title": "Дашборд",
+    "exportAll": "Экспортировать всё",
+    "warningsTitle": "Есть предупреждения при загрузке архива ({{count}})",
+    "andMore": "…и ещё {{count}}",
+    "conversations": "Беседы",
+    "emptyOfThem": "из них пустых: {{count}}",
+    "messages": "Сообщения",
+    "projects": "Проекты",
+    "documents": "Документы",
+    "thousandChars": "{{count}} тыс. символов",
+    "dateRange": "Диапазон дат",
+    "noData": "Нет данных",
+    "tools": "Инструменты",
+    "toolsNotUsed": "Инструменты не использовались"
+  },
+  "account": {
+    "title": "Аккаунт",
+    "showPii": "Показать email и IP",
+    "profile": "Профиль",
+    "loginHistory": "История входов ({{count}})",
+    "noLoginHistory": "Нет данных об истории входов",
+    "date": "Дата",
+    "ip": "IP",
+    "browser": "Браузер",
+    "os": "ОС",
+    "geo": "Гео",
+    "method": "Способ"
+  },
+  "project": {
+    "export": "Экспорт",
+    "exportDocsZip": "Документы (.zip)",
+    "userInstructions": "Пользовательские инструкции проекта",
+    "linkedConversations": "Беседы этого проекта (определено по документам)",
+    "searchDocs": "Поиск по документам",
+    "noDocsFound": "Документы не найдены",
+    "noDocsInProject": "В этом проекте нет документов",
+    "noProjects": "В архиве нет проектов",
+    "docsCount": "{{count}} документов",
+    "notFound": "Проект не найден",
+    "selectPrompt": "Выберите проект слева"
+  },
+  "conversation": {
+    "export": "Экспорт",
+    "exportMarkdown": "Markdown",
+    "exportMarkdownClean": "Markdown — только диалог",
+    "exportJson": "JSON",
+    "empty": "В этой беседе нет сообщений.",
+    "searchPlaceholder": "tool/web_search from:2026-08-01 in:\"проект\"",
+    "regex": "Regex",
+    "regexTooltip": "Считать текст в строке поиска регулярным выражением, а не обычной подстрокой",
+    "searchThinking": "Искать в размышлениях",
+    "searchThinkingTooltip": "Дополнительно искать в кратких саммари размышлений Claude (thinking)",
+    "searchTools": "Искать в инструментах",
+    "searchToolsTooltip": "Дополнительно искать в результатах web_search, чтения страниц и других инструментов — это ~90% объёма архива, поэтому выключено по умолчанию",
+    "nothingFound": "Ничего не найдено",
+    "notFound": "Беседа не найдена",
+    "selectPrompt": "Выберите беседу слева",
+    "messagesCountShort": "{{count}} сообщ.",
+    "prevBranch": "Предыдущая ветка",
+    "nextBranch": "Следующая ветка",
+    "resultWithoutCall": "Результат без парного вызова инструмента",
+    "callWithoutResult": "Вызов без результата",
+    "incompleteData": "данные архива неполны"
+  },
+  "common": {
+    "untitled": "Без названия",
+    "noName": "Без имени",
+    "source": "Источник",
+    "error": "ошибка",
+    "scrollTop": "Наверх страницы",
+    "unknownBlock": "Нераспознанный блок: {{type}}"
+  },
+  "tools": {
+    "web_search": "Поиск в вебе",
+    "web_fetch": "Открытие страницы",
+    "project_knowledge_search": "Поиск по проекту",
+    "bash_tool": "Терминал",
+    "view": "Просмотр файла",
+    "artifacts": "Артефакт",
+    "repl": "Код (REPL)"
+  },
+  "errors": {
+    "unzipFailed": "Не удалось распаковать {{file}}",
+    "fileSkipped": "Файл {{file}} пропущен: не .zip и не .json",
+    "jsonParseFailed": "Не удалось разобрать JSON в {{file}}",
+    "unknownArrayFormat": "Неизвестный формат массива в {{file}}",
+    "unknownObjectFormat": "Неизвестный формат объекта в {{file}}",
+    "unknownContent": "Неожиданное содержимое в {{file}}",
+    "manifestEntryMissing": "Манифест ссылается на {{file}} ({{category}}), но этот файл не был загружен",
+    "manifestParseFailed": "Не удалось разобрать манифест {{file}}",
+    "archiveEmpty": "В загруженных файлах не найдено ни бесед, ни проектов, ни метаданных аккаунта. Проверьте, что выбраны файлы экспорта claude.ai.",
+    "noThreadRoot": "Не удалось определить начало беседы — сообщения показаны в порядке из файла экспорта.",
+    "unreachableMessages": "Обнаружены недостижимые сообщения ({{count}} шт.) — возможен цикл или битая ссылка parent_message_uuid. Показан порядок из файла экспорта.",
+    "unknown": "Неизвестная ошибка: {{message}}"
+  },
+  "export": {
+    "speakerHuman": "Вы",
+    "speakerClaude": "Claude",
+    "emptyMessage": "*(пустое сообщение)*",
+    "thinkingSummary": "*Claude размышлял: {{summary}}*",
+    "archiveTitle": "Экспорт архива Claude",
+    "conversationsHeading": "Беседы",
+    "projectsHeading": "Проекты",
+    "projectSuffix": "проект «{{name}}»",
+    "docsCount": "документов: {{count}}"
+  }
+}

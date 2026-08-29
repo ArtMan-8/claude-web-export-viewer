@@ -1,0 +1,138 @@
+{
+  "app": {
+    "title": "Claude Archive"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "conversations": "Conversations",
+    "projects": "Projects",
+    "account": "Account",
+    "newArchive": "Another archive",
+    "resetArchiveTooltip": "Load another archive"
+  },
+  "theme": {
+    "system": "Theme: system",
+    "light": "Theme: light",
+    "dark": "Theme: dark"
+  },
+  "language": {
+    "toggle": "Language: {{language}}",
+    "ru": "Русский",
+    "en": "English"
+  },
+  "dropzone": {
+    "title": "Claude Archive",
+    "description": "Drop your claude.ai export files here — manifest-*.json and .zip archives (conversations, projects, light_metadata) — or pick them manually. Everything is processed locally in the browser.",
+    "parsing": "Parsing archive…",
+    "dragHint": "Drop files here",
+    "chooseFiles": "Choose files",
+    "errorTitle": "Failed to load archive"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "exportAll": "Export everything",
+    "warningsTitle": "There are warnings from loading the archive ({{count}})",
+    "andMore": "…and {{count}} more",
+    "conversations": "Conversations",
+    "emptyOfThem": "of which empty: {{count}}",
+    "messages": "Messages",
+    "projects": "Projects",
+    "documents": "Documents",
+    "thousandChars": "{{count}}k characters",
+    "dateRange": "Date range",
+    "noData": "No data",
+    "tools": "Tools",
+    "toolsNotUsed": "No tools were used"
+  },
+  "account": {
+    "title": "Account",
+    "showPii": "Show email and IP",
+    "profile": "Profile",
+    "loginHistory": "Login history ({{count}})",
+    "noLoginHistory": "No login history data",
+    "date": "Date",
+    "ip": "IP",
+    "browser": "Browser",
+    "os": "OS",
+    "geo": "Geo",
+    "method": "Method"
+  },
+  "project": {
+    "export": "Export",
+    "exportDocsZip": "Documents (.zip)",
+    "userInstructions": "Custom project instructions",
+    "linkedConversations": "Conversations in this project (inferred from documents)",
+    "searchDocs": "Search documents",
+    "noDocsFound": "No documents found",
+    "noDocsInProject": "This project has no documents",
+    "noProjects": "The archive has no projects",
+    "docsCount": "{{count}} documents",
+    "notFound": "Project not found",
+    "selectPrompt": "Select a project on the left"
+  },
+  "conversation": {
+    "export": "Export",
+    "exportMarkdown": "Markdown",
+    "exportMarkdownClean": "Markdown — dialogue only",
+    "exportJson": "JSON",
+    "empty": "This conversation has no messages.",
+    "searchPlaceholder": "tool/web_search from:2026-08-01 in:\"project\"",
+    "regex": "Regex",
+    "regexTooltip": "Treat the search text as a regular expression instead of a plain substring",
+    "searchThinking": "Search in thinking",
+    "searchThinkingTooltip": "Also search Claude's thinking summaries",
+    "searchTools": "Search in tools",
+    "searchToolsTooltip": "Also search web_search results, page reads and other tool output — that's ~90% of the archive volume, so it's off by default",
+    "nothingFound": "Nothing found",
+    "notFound": "Conversation not found",
+    "selectPrompt": "Select a conversation on the left",
+    "messagesCountShort": "{{count}} msg.",
+    "prevBranch": "Previous branch",
+    "nextBranch": "Next branch",
+    "resultWithoutCall": "Result without a matching tool call",
+    "callWithoutResult": "Call without a result",
+    "incompleteData": "archive data is incomplete"
+  },
+  "common": {
+    "untitled": "Untitled",
+    "noName": "Unnamed",
+    "source": "Source",
+    "error": "error",
+    "scrollTop": "Scroll to top",
+    "unknownBlock": "Unrecognized block: {{type}}"
+  },
+  "tools": {
+    "web_search": "Web search",
+    "web_fetch": "Open page",
+    "project_knowledge_search": "Project search",
+    "bash_tool": "Terminal",
+    "view": "View file",
+    "artifacts": "Artifact",
+    "repl": "Code (REPL)"
+  },
+  "errors": {
+    "unzipFailed": "Failed to unzip {{file}}",
+    "fileSkipped": "Skipped file {{file}}: not a .zip or .json",
+    "jsonParseFailed": "Failed to parse JSON in {{file}}",
+    "unknownArrayFormat": "Unknown array format in {{file}}",
+    "unknownObjectFormat": "Unknown object format in {{file}}",
+    "unknownContent": "Unexpected content in {{file}}",
+    "manifestEntryMissing": "The manifest references {{file}} ({{category}}), but this file wasn't uploaded",
+    "manifestParseFailed": "Failed to parse manifest {{file}}",
+    "archiveEmpty": "No conversations, projects, or account metadata found in the uploaded files. Make sure you selected claude.ai export files.",
+    "noThreadRoot": "Couldn't determine the start of the conversation — messages are shown in export file order.",
+    "unreachableMessages": "Found {{count}} unreachable message(s) — possibly a cycle or a broken parent_message_uuid reference. Showing export file order.",
+    "unknown": "Unknown error: {{message}}"
+  },
+  "export": {
+    "speakerHuman": "You",
+    "speakerClaude": "Claude",
+    "emptyMessage": "*(empty message)*",
+    "thinkingSummary": "*Claude was thinking: {{summary}}*",
+    "archiveTitle": "Claude archive export",
+    "conversationsHeading": "Conversations",
+    "projectsHeading": "Projects",
+    "projectSuffix": "project \"{{name}}\"",
+    "docsCount": "documents: {{count}}"
+  }
+}
