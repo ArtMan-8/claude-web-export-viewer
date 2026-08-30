@@ -8,7 +8,11 @@ export interface SearchEntry {
   text: string
 }
 
-/** Индекс строится по text-блокам диалога (Q21) — размышления и результаты инструментов не индексируются. */
+/**
+ * Индекс строится по text-блокам диалога (Q21) — размышления и результаты
+ * инструментов не индексируются. text хранится уже в нижнем регистре, чтобы
+ * matchesQuery не приводил его заново на каждый поисковый запрос.
+ */
 export function buildSearchIndex(conversations: Conversation[]): SearchEntry[] {
   const entries: SearchEntry[] = []
 
@@ -20,7 +24,7 @@ export function buildSearchIndex(conversations: Conversation[]): SearchEntry[] {
             conversationUuid: conversation.uuid,
             messageUuid: message.uuid,
             createdAt: message.createdAt,
-            text: block.text,
+            text: block.text.toLowerCase(),
           })
         }
       }
@@ -56,11 +60,17 @@ export interface DocSearchEntry {
   text: string
 }
 
+/** filename и text хранятся уже в нижнем регистре — та же причина, что и в buildSearchIndex. */
 export function buildDocIndex(projects: Project[]): DocSearchEntry[] {
   const entries: DocSearchEntry[] = []
   for (const project of projects) {
     for (const doc of project.docs) {
-      entries.push({ projectUuid: project.uuid, docUuid: doc.uuid, filename: doc.filename, text: doc.content })
+      entries.push({
+        projectUuid: project.uuid,
+        docUuid: doc.uuid,
+        filename: doc.filename.toLowerCase(),
+        text: doc.content.toLowerCase(),
+      })
     }
   }
   return entries
@@ -90,7 +100,8 @@ export function runProjectSearch(projects: Project[], docIndex: DocSearchEntry[]
   const results: ProjectSearchResult[] = []
   for (const project of projects) {
     const matchCount = docMatchCounts.get(project.uuid) ?? 0
-    const matchesProjectItself = matchesQuery(project.name, needle) || matchesQuery(project.description, needle)
+    const matchesProjectItself =
+      matchesQuery(project.name.toLowerCase(), needle) || matchesQuery(project.description.toLowerCase(), needle)
     if (matchCount > 0 || matchesProjectItself) results.push({ projectUuid: project.uuid, matchCount })
   }
   return results

@@ -2,7 +2,7 @@ import { createContext, useCallback, useContext, useMemo, useState, type ReactNo
 import { buildArchive } from '@/lib/archive/build-archive'
 import { ArchiveLoadError, type RawFileInput } from '@/lib/archive/load'
 import type { Archive } from '@/lib/archive/model'
-import { buildSearchIndex, type SearchEntry } from '@/lib/search'
+import { buildDocIndex, buildSearchIndex, type DocSearchEntry, type SearchEntry } from '@/lib/search'
 
 export type LoadStatus = 'idle' | 'loading' | 'ready' | 'error'
 
@@ -16,6 +16,7 @@ interface ArchiveContextValue {
   status: LoadStatus
   error: ArchiveLoadErrorInfo | null
   searchIndex: SearchEntry[]
+  docIndex: DocSearchEntry[]
   loadFromFiles(files: FileList | File[]): Promise<void>
   /** Пробует подхватить claude-data/ через dev-эндпоинт. Возвращает true, если что-то нашлось и загрузилось. */
   tryLoadLocalArchive(): Promise<boolean>
@@ -92,10 +93,11 @@ export function ArchiveProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const searchIndex = useMemo(() => (archive ? buildSearchIndex(archive.conversations) : []), [archive])
+  const docIndex = useMemo(() => (archive ? buildDocIndex(archive.projects) : []), [archive])
 
   const value = useMemo<ArchiveContextValue>(
-    () => ({ archive, status, error, searchIndex, loadFromFiles, tryLoadLocalArchive, reset }),
-    [archive, status, error, searchIndex, loadFromFiles, tryLoadLocalArchive, reset],
+    () => ({ archive, status, error, searchIndex, docIndex, loadFromFiles, tryLoadLocalArchive, reset }),
+    [archive, status, error, searchIndex, docIndex, loadFromFiles, tryLoadLocalArchive, reset],
   )
 
   return <ArchiveContext.Provider value={value}>{children}</ArchiveContext.Provider>

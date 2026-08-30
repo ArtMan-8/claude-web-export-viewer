@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { runSearch } from '@/lib/search'
 import { displayNameOf } from '@/lib/display-name'
 import { useArchive } from '@/store/archive-store'
+import { useDebouncedValue } from '@/hooks/use-debounced-value'
 
 function formatDate(iso: string): string {
   return iso ? iso.slice(0, 10) : ''
@@ -20,8 +21,9 @@ export function ConversationListPanel() {
   const activeUuid = (params as { uuid?: string }).uuid
 
   const [query, setQuery] = useState('')
+  const debouncedQuery = useDebouncedValue(query, 500)
 
-  const results = useMemo(() => runSearch(searchIndex, query), [searchIndex, query])
+  const results = useMemo(() => runSearch(searchIndex, debouncedQuery), [searchIndex, debouncedQuery])
   const matchByUuid = useMemo(() => new Map(results.map((r) => [r.conversationUuid, r.matchCount])), [results])
 
   const projectNameByConversation = useMemo(() => {
@@ -40,9 +42,9 @@ export function ConversationListPanel() {
   const rows = useMemo(() => {
     if (!archive) return []
     const nonEmpty = archive.conversations.filter((c) => !c.isEmpty)
-    const base = query.trim() ? nonEmpty.filter((c) => matchByUuid.has(c.uuid)) : nonEmpty
+    const base = debouncedQuery.trim() ? nonEmpty.filter((c) => matchByUuid.has(c.uuid)) : nonEmpty
     return [...base].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
-  }, [archive, query, matchByUuid])
+  }, [archive, debouncedQuery, matchByUuid])
 
   const parentRef = useRef<HTMLDivElement>(null)
   const virtualizer = useVirtualizer({
@@ -90,7 +92,7 @@ export function ConversationListPanel() {
                     <span className="truncate text-sm font-medium">
                       {displayNameOf(conversation.name, t('common.untitled'))}
                     </span>
-                    {typeof matchCount === 'number' && query.trim() && (
+                    {typeof matchCount === 'number' && debouncedQuery.trim() && (
                       <Badge variant="secondary" className="ml-auto shrink-0 text-xs">
                         {matchCount}
                       </Badge>

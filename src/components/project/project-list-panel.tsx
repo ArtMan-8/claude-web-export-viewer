@@ -4,23 +4,24 @@ import { FileText, Search } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import { buildDocIndex, runProjectSearch } from '@/lib/search'
+import { runProjectSearch } from '@/lib/search'
 import { displayNameOf } from '@/lib/display-name'
 import { useArchive } from '@/store/archive-store'
+import { useDebouncedValue } from '@/hooks/use-debounced-value'
 
 export function ProjectListPanel() {
   const { t } = useTranslation()
-  const { archive } = useArchive()
+  const { archive, docIndex } = useArchive()
   const params = useParams({ strict: false })
   const activeUuid = (params as { uuid?: string }).uuid
   const [query, setQuery] = useState('')
+  const debouncedQuery = useDebouncedValue(query, 500)
 
   const allProjects = useMemo(() => (archive?.projects ?? []).filter((p) => !p.isEmpty), [archive])
-  const docIndex = useMemo(() => buildDocIndex(allProjects), [allProjects])
-  const results = useMemo(() => runProjectSearch(allProjects, docIndex, query), [allProjects, docIndex, query])
+  const results = useMemo(() => runProjectSearch(allProjects, docIndex, debouncedQuery), [allProjects, docIndex, debouncedQuery])
   const matchByUuid = useMemo(() => new Map(results.map((r) => [r.projectUuid, r.matchCount])), [results])
 
-  const projects = query.trim() ? allProjects.filter((p) => matchByUuid.has(p.uuid)) : allProjects
+  const projects = debouncedQuery.trim() ? allProjects.filter((p) => matchByUuid.has(p.uuid)) : allProjects
 
   return (
     <div className="flex h-full w-80 shrink-0 flex-col border-r">
@@ -39,7 +40,7 @@ export function ProjectListPanel() {
       <div className="flex-1 overflow-y-auto">
         {projects.length === 0 ? (
           <p className="p-4 text-sm text-muted-foreground">
-            {query.trim() ? t('conversation.nothingFound') : t('project.noProjects')}
+            {debouncedQuery.trim() ? t('conversation.nothingFound') : t('project.noProjects')}
           </p>
         ) : (
           projects.map((project) => {
@@ -55,7 +56,7 @@ export function ProjectListPanel() {
               >
                 <div className="flex items-center gap-2">
                   <span className="truncate text-sm font-medium">{displayNameOf(project.name, t('common.untitled'))}</span>
-                  {query.trim() && !!matchCount && (
+                  {debouncedQuery.trim() && !!matchCount && (
                     <Badge variant="secondary" className="ml-auto shrink-0 text-xs">
                       {t('project.matchesCount', { count: matchCount })}
                     </Badge>
