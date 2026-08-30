@@ -16,12 +16,14 @@ import { buildProjectDocsZip } from '@/lib/export/zip-all'
 import { downloadBytes, downloadText } from '@/lib/download'
 import { matchesQuery, normalizeQuery } from '@/lib/search/query'
 import { useArchive } from '@/store/archive-store'
+import { useDebouncedValue } from '@/hooks/use-debounced-value'
 
 export function ProjectView({ project }: { project: Project }) {
   const { t } = useTranslation()
-  const { archive } = useArchive()
+  const { archive, docIndex } = useArchive()
   const projectDisplayName = displayNameOf(project.name, t('common.untitled'))
   const [filter, setFilter] = useState('')
+  const debouncedFilter = useDebouncedValue(filter, 500)
   const [selectedDocUuid, setSelectedDocUuid] = useState(project.docs[0]?.uuid ?? null)
   const [promptOpen, setPromptOpen] = useState(false)
   const docScrollRef = useRef<HTMLDivElement>(null)
@@ -35,10 +37,16 @@ export function ProjectView({ project }: { project: Project }) {
   }, [project.uuid])
 
   const filteredDocs = useMemo(() => {
-    const needle = normalizeQuery(filter)
+    const needle = normalizeQuery(debouncedFilter)
     if (!needle) return project.docs
-    return project.docs.filter((doc) => matchesQuery(doc.filename, needle) || matchesQuery(doc.content, needle))
-  }, [project.docs, filter])
+    const matchingDocUuids = new Set(
+      docIndex
+        .filter((entry) => entry.projectUuid === project.uuid)
+        .filter((entry) => matchesQuery(entry.filename, needle) || matchesQuery(entry.text, needle))
+        .map((entry) => entry.docUuid),
+    )
+    return project.docs.filter((doc) => matchingDocUuids.has(doc.uuid))
+  }, [project.docs, project.uuid, docIndex, debouncedFilter])
 
   // Искать выбранный документ нужно в отфильтрованном списке — иначе после
   // фильтрации справа продолжает показываться документ, которого больше нет в списке слева.
