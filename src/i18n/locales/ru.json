@@ -69,6 +69,7 @@
     "searchDocs": "Поиск по документам",
     "noDocsFound": "Документы не найдены",
     "noDocsInProject": "В этом проекте нет документов",
+    "emptyCsv": "CSV-файл пуст",
     "noProjects": "В архиве нет проектов",
     "docsCount": "{{count}} документов",
     "notFound": "Проект не найден",

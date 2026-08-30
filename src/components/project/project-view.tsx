@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Markdown } from '@/components/common/markdown'
+import { CsvTable } from '@/components/common/csv-table'
 import { LINK_CHIP_CLASS } from '@/components/common/link-chip'
 import { ScrollToTopButton } from '@/components/common/scroll-to-top-button'
 import type { Project } from '@/lib/archive/model'
@@ -157,7 +158,11 @@ export function ProjectView({ project }: { project: Project }) {
         <div className="relative min-w-0 flex-1">
           <div ref={docScrollRef} className="h-full overflow-y-auto p-4">
             {selectedDoc ? (
-              <Markdown>{selectedDoc.content}</Markdown>
+              selectedDoc.filename.toLowerCase().endsWith('.csv') ? (
+                <CsvTable content={selectedDoc.content} />
+              ) : (
+                <Markdown>{selectedDoc.content}</Markdown>
+              )
             ) : (
               <p className="text-sm text-muted-foreground">{t('project.noDocsInProject')}</p>
             )}

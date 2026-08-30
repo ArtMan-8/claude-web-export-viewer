@@ -69,6 +69,7 @@
     "searchDocs": "Search documents",
     "noDocsFound": "No documents found",
     "noDocsInProject": "This project has no documents",
+    "emptyCsv": "The CSV file is empty",
     "noProjects": "The archive has no projects",
     "docsCount": "{{count}} documents",
     "notFound": "Project not found",
