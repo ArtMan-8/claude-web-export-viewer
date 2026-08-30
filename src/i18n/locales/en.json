@@ -69,7 +69,9 @@
     "noProjects": "The archive has no projects",
     "docsCount": "{{count}} documents",
     "notFound": "Project not found",
-    "selectPrompt": "Select a project on the left"
+    "selectPrompt": "Select a project on the left",
+    "searchPlaceholder": "Search projects",
+    "matchesCount": "{{count}} documents matched"
   },
   "conversation": {
     "export": "Export",
@@ -77,13 +79,7 @@
     "exportMarkdownClean": "Markdown — dialogue only",
     "exportJson": "JSON",
     "empty": "This conversation has no messages.",
-    "searchPlaceholder": "tool/web_search from:2026-08-01 in:\"project\"",
-    "regex": "Regex",
-    "regexTooltip": "Treat the search text as a regular expression instead of a plain substring",
-    "searchThinking": "Search in thinking",
-    "searchThinkingTooltip": "Also search Claude's thinking summaries",
-    "searchTools": "Search in tools",
-    "searchToolsTooltip": "Also search web_search results, page reads and other tool output — that's ~90% of the archive volume, so it's off by default",
+    "searchPlaceholder": "Search conversations",
     "nothingFound": "Nothing found",
     "notFound": "Conversation not found",
     "selectPrompt": "Select a conversation on the left",

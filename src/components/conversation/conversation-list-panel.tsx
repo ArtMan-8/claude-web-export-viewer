@@ -1,13 +1,11 @@
 import { useMemo, useRef, useState } from 'react'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { Link, useParams } from '@tanstack/react-router'
-import { AlertCircle, FolderOpen, Search } from 'lucide-react'
+import { FolderOpen, Search } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import { DEFAULT_SEARCH_SCOPE, runSearch, type SearchScope } from '@/lib/search'
+import { runSearch } from '@/lib/search'
 import { displayNameOf } from '@/lib/display-name'
 import { useArchive } from '@/store/archive-store'
 
@@ -22,18 +20,9 @@ export function ConversationListPanel() {
   const activeUuid = (params as { uuid?: string }).uuid
 
   const [query, setQuery] = useState('')
-  const [regexMode, setRegexMode] = useState(false)
-  const [scope, setScope] = useState<SearchScope>(DEFAULT_SEARCH_SCOPE)
 
-  const outcome = useMemo(() => {
-    if (!archive) return { results: [], regexError: null }
-    return runSearch(archive.conversations, archive.projects, archive.projectLinks, searchIndex, query, {
-      scope,
-      regexMode,
-    })
-  }, [archive, searchIndex, query, scope, regexMode])
-
-  const matchByUuid = useMemo(() => new Map(outcome.results.map((r) => [r.conversationUuid, r.matchCount])), [outcome])
+  const results = useMemo(() => runSearch(searchIndex, query), [searchIndex, query])
+  const matchByUuid = useMemo(() => new Map(results.map((r) => [r.conversationUuid, r.matchCount])), [results])
 
   const projectNameByConversation = useMemo(() => {
     if (!archive) return new Map<string, string>()
@@ -65,7 +54,7 @@ export function ConversationListPanel() {
 
   return (
     <div className="flex h-full w-80 shrink-0 flex-col border-r">
-      <div className="flex flex-col gap-2 border-b p-3">
+      <div className="border-b p-3">
         <div className="relative">
           <Search className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-muted-foreground" />
           <Input
@@ -75,45 +64,6 @@ export function ConversationListPanel() {
             className="pl-8"
           />
         </div>
-        <div className="flex flex-wrap gap-1.5">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button size="sm" variant={regexMode ? 'secondary' : 'ghost'} onClick={() => setRegexMode((v) => !v)}>
-                {t('conversation.regex')}
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>{t('conversation.regexTooltip')}</TooltipContent>
-          </Tooltip>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                size="sm"
-                variant={scope.thinking ? 'secondary' : 'ghost'}
-                onClick={() => setScope((s) => ({ ...s, thinking: !s.thinking }))}
-              >
-                {t('conversation.searchThinking')}
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>{t('conversation.searchThinkingTooltip')}</TooltipContent>
-          </Tooltip>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                size="sm"
-                variant={scope.toolResults ? 'secondary' : 'ghost'}
-                onClick={() => setScope((s) => ({ ...s, toolResults: !s.toolResults }))}
-              >
-                {t('conversation.searchTools')}
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>{t('conversation.searchToolsTooltip')}</TooltipContent>
-          </Tooltip>
-        </div>
-        {outcome.regexError && (
-          <p className="flex items-center gap-1 text-xs text-destructive">
-            <AlertCircle className="size-3" /> {outcome.regexError}
-          </p>
-        )}
       </div>
 
       <div ref={parentRef} className="min-h-0 flex-1 overflow-y-auto">

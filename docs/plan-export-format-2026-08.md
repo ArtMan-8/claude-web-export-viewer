@@ -328,16 +328,16 @@ interface Archive {
 
 Файлы: `src/lib/search/query.ts`, `index.ts`, `src/components/conversation/conversation-list-panel.tsx`, `src/components/project/project-list-panel.tsx`, `src/store/archive-store.tsx`, i18n
 
-- [ ] 4.1 `query.ts`: удалить `parseQuery`, `ParsedQuery`, `TOKEN_RE`, `HAS_VALUES` — язык запросов уходит целиком (U1). На замену — `normalizeQuery(query): string`: `trim`, схлопывание пробелов, нижний регистр
-- [ ] 4.2 `query.ts`: `matchesQuery(haystack, needle)` — прежний `includes` по нижнему регистру, порядок слов строгий (U2). Из `compileTextMatcher` убрать `regexMode`, а `regexError` — по всей цепочке
-- [ ] 4.3 `index.ts`: `buildSearchIndex` — только `kind: 'text'` (48 записей вместо 383); удалить `SearchScope`, `DEFAULT_SEARCH_SCOPE`, `SearchBlockKind`, `toolName`, `SearchOptions`
-- [ ] 4.4 `index.ts`: `runSearch(index, query)` — параметры `projects`, `projectLinks`, `options` больше не нужны (были нужны только для `in:` и области поиска); `SearchOutcome` схлопывается в массив результатов, `regexError` исчезает
-- [ ] 4.5 `index.ts`: `buildDocIndex(projects)` — записи `{projectUuid, docUuid, filename, text}` (имя + описание проекта + содержимое, U3); `runProjectSearch` на том же `matchesQuery`
-- [ ] 4.6 `conversation-list-panel.tsx`: удалить кнопки «Regex», «Искать в размышлениях», «Искать в инструментах», состояния `scope`/`regexMode`, блок ошибки regex и импорты `Button`/`Tooltip`, если осели без применения
-- [ ] 4.7 `project-list-panel.tsx`: поле поиска, число совпавших документов на карточке, состояние «ничего не найдено»
-- [ ] 4.8 `project-view.tsx`: перевести локальный фильтр документов на `matchesQuery`; **починить рассинхрон** — `selectedDoc` искать по отфильтрованному списку (`project-view.tsx:44`)
-- [ ] 4.9 i18n: удалить `conversation.regex`, `conversation.regexTooltip`, `searchThinking`, `searchThinkingTooltip`, `searchTools`, `searchToolsTooltip`; заменить `conversation.searchPlaceholder` (сейчас рекламирует удаляемый синтаксис `tool/web_search from:2026-08-01 in:"project"`); добавить `project.searchPlaceholder`, `project.matchesCount`
-- [ ] 4.10 Тесты `query.test.ts` переписать: регистронезависимость, схлопывание пробелов, пустой запрос, кавычки и двоеточия как обычные символы (`from:2026` и `tool/web_search` теперь ищутся буквально)
+- [x] 4.1 `query.ts`: удалить `parseQuery`, `ParsedQuery`, `TOKEN_RE`, `HAS_VALUES` — язык запросов уходит целиком (U1). На замену — `normalizeQuery(query): string`: `trim`, схлопывание пробелов, нижний регистр
+- [x] 4.2 `query.ts`: `matchesQuery(haystack, needle)` — прежний `includes` по нижнему регистру, порядок слов строгий (U2). Из `compileTextMatcher` убрать `regexMode`, а `regexError` — по всей цепочке
+- [x] 4.3 `index.ts`: `buildSearchIndex` — только `kind: 'text'` (48 записей вместо 383); удалить `SearchScope`, `DEFAULT_SEARCH_SCOPE`, `SearchBlockKind`, `toolName`, `SearchOptions`
+- [x] 4.4 `index.ts`: `runSearch(index, query)` — параметры `projects`, `projectLinks`, `options` больше не нужны (были нужны только для `in:` и области поиска); `SearchOutcome` схлопывается в массив результатов, `regexError` исчезает
+- [x] 4.5 `index.ts`: `buildDocIndex(projects)` — записи `{projectUuid, docUuid, filename, text}` (имя + описание проекта + содержимое, U3); `runProjectSearch` на том же `matchesQuery`
+- [x] 4.6 `conversation-list-panel.tsx`: удалить кнопки «Regex», «Искать в размышлениях», «Искать в инструментах», состояния `scope`/`regexMode`, блок ошибки regex и импорты `Button`/`Tooltip`, если осели без применения
+- [x] 4.7 `project-list-panel.tsx`: поле поиска, число совпавших документов на карточке, состояние «ничего не найдено»
+- [x] 4.8 `project-view.tsx`: перевести локальный фильтр документов на `matchesQuery`; **починить рассинхрон** — `selectedDoc` искать по отфильтрованному списку (`project-view.tsx:44`)
+- [x] 4.9 i18n: удалить `conversation.regex`, `conversation.regexTooltip`, `searchThinking`, `searchThinkingTooltip`, `searchTools`, `searchToolsTooltip`; заменить `conversation.searchPlaceholder` (сейчас рекламирует удаляемый синтаксис `tool/web_search from:2026-08-01 in:"project"`); добавить `project.searchPlaceholder`, `project.matchesCount`
+- [x] 4.10 Тесты `query.test.ts` переписать: регистронезависимость, схлопывание пробелов, пустой запрос, кавычки и двоеточия как обычные символы (`from:2026` и `tool/web_search` теперь ищутся буквально)
 
 **Критерий приёмки:** `дневник сновидений` находит то же, что и раньше; `сновидений дневник` не находит ничего (порядок слов строгий — так и задумано); `tool/web_search` ищется как обычный текст; поиск в списке проектов находит проект по тексту внутри документа; в `lib/search` не осталось упоминаний regex, области поиска и префиксных фильтров.
 
@@ -411,7 +411,7 @@ interface Archive {
 **Слой 1 — модель и нормализация** ☑ 1.1 ☑ 1.2 ☑ 1.3 ☑ 1.4 ☑ 1.5 ☑ 1.6 ☑ 1.7 ☑ 1.8 ☑ 1.9 ☑ 1.10 ☑ 1.11 ☑ 1.12
 **Слой 2 — рендер инструментов** ☑ 2.1 ☑ 2.2 ☑ 2.3 ☑ 2.4 ☑ 2.5 ☑ 2.6 ☑ 2.7 ☑ 2.8 ☑ 2.9 ☑ 2.10 ☑ 2.11 ☑ 2.12
 **Слой 3 — файлы беседы** ☑ 3.1 ☑ 3.2 ☑ 3.3 ☑ 3.4 ☑ 3.5 ☑ 3.6 ☑ 3.7
-**Слой 4 — поиск** ☐ 4.1 ☐ 4.2 ☐ 4.3 ☐ 4.4 ☐ 4.5 ☐ 4.6 ☐ 4.7 ☐ 4.8 ☐ 4.9 ☐ 4.10
+**Слой 4 — поиск** ☑ 4.1 ☑ 4.2 ☑ 4.3 ☑ 4.4 ☑ 4.5 ☑ 4.6 ☑ 4.7 ☑ 4.8 ☑ 4.9 ☑ 4.10
 **Слой 5 — экспорт** ☐ 5.1 ☐ 5.2 ☐ 5.3 ☐ 5.4 ☐ 5.5 ☐ 5.6 ☐ 5.7
 **Слой 6 — детектор незнакомого** ☐ 6.1 ☐ 6.2 ☐ 6.3 ☐ 6.4 ☐ 6.5 ☐ 6.6
 **Слой 7 — интерфейс** ☐ 7.1 ☐ 7.2 ☐ 7.3 ☐ 7.4 ☐ 7.5 ☐ 7.6

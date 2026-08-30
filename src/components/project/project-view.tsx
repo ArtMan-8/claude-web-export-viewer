@@ -14,6 +14,7 @@ import { displayNameOf } from '@/lib/display-name'
 import { projectToJson } from '@/lib/export/json'
 import { buildProjectDocsZip } from '@/lib/export/zip-all'
 import { downloadBytes, downloadText } from '@/lib/download'
+import { matchesQuery, normalizeQuery } from '@/lib/search/query'
 import { useArchive } from '@/store/archive-store'
 
 export function ProjectView({ project }: { project: Project }) {
@@ -34,14 +35,14 @@ export function ProjectView({ project }: { project: Project }) {
   }, [project.uuid])
 
   const filteredDocs = useMemo(() => {
-    const needle = filter.trim().toLowerCase()
+    const needle = normalizeQuery(filter)
     if (!needle) return project.docs
-    return project.docs.filter(
-      (doc) => doc.filename.toLowerCase().includes(needle) || doc.content.toLowerCase().includes(needle),
-    )
+    return project.docs.filter((doc) => matchesQuery(doc.filename, needle) || matchesQuery(doc.content, needle))
   }, [project.docs, filter])
 
-  const selectedDoc = project.docs.find((d) => d.uuid === selectedDocUuid) ?? filteredDocs[0] ?? null
+  // Искать выбранный документ нужно в отфильтрованном списке — иначе после
+  // фильтрации справа продолжает показываться документ, которого больше нет в списке слева.
+  const selectedDoc = filteredDocs.find((d) => d.uuid === selectedDocUuid) ?? filteredDocs[0] ?? null
 
   const linkedConversations = useMemo(() => {
     if (!archive) return []

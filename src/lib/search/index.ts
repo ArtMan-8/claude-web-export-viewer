@@ -1,18 +1,14 @@
-import type { Block, Conversation, Project, ProjectLink } from '@/lib/archive/model'
-import { compileTextMatcher, parseQuery } from './query'
-
-export type SearchBlockKind = 'text' | 'thinking' | 'tool'
+import type { Conversation, Project } from '@/lib/archive/model'
+import { matchesQuery, normalizeQuery } from './query'
 
 export interface SearchEntry {
   conversationUuid: string
   messageUuid: string
   createdAt: string
-  blockKind: SearchBlockKind
-  toolName: string | null
   text: string
 }
 
-/** Индекс строится по content-блокам (не по беседам целиком) — беседы бывают под мегабайт весом. */
+/** Индекс строится по text-блокам диалога (Q21) — размышления и результаты инструментов не индексируются. */
 export function buildSearchIndex(conversations: Conversation[]): SearchEntry[] {
   const entries: SearchEntry[] = []
 
@@ -24,27 +20,7 @@ export function buildSearchIndex(conversations: Conversation[]): SearchEntry[] {
             conversationUuid: conversation.uuid,
             messageUuid: message.uuid,
             createdAt: message.createdAt,
-            blockKind: 'text',
-            toolName: null,
             text: block.text,
-          })
-        } else if (block.kind === 'thinking') {
-          entries.push({
-            conversationUuid: conversation.uuid,
-            messageUuid: message.uuid,
-            createdAt: message.createdAt,
-            blockKind: 'thinking',
-            toolName: null,
-            text: block.summaries.join(' ') || block.text,
-          })
-        } else if (block.kind === 'tool') {
-          entries.push({
-            conversationUuid: conversation.uuid,
-            messageUuid: message.uuid,
-            createdAt: message.createdAt,
-            blockKind: 'tool',
-            toolName: block.name,
-            text: block.result.kind === 'text' ? block.result.text : '',
           })
         }
       }
@@ -54,117 +30,68 @@ export function buildSearchIndex(conversations: Conversation[]): SearchEntry[] {
   return entries
 }
 
-export interface SearchScope {
-  thinking: boolean
-  toolResults: boolean
-}
-
-export interface SearchOptions {
-  scope: SearchScope
-  regexMode: boolean
-}
-
-export const DEFAULT_SEARCH_SCOPE: SearchScope = { thinking: false, toolResults: false }
-
 export interface SearchResult {
   conversationUuid: string
   matchCount: number
 }
 
-export interface SearchOutcome {
-  results: SearchResult[]
-  regexError: string | null
-}
-
-function toTimestamp(value: string, endOfDay: boolean): number | null {
-  const iso = /^\d{4}-\d{2}-\d{2}$/.test(value) ? `${value}T${endOfDay ? '23:59:59.999' : '00:00:00'}Z` : value
-  const parsed = Date.parse(iso)
-  return Number.isNaN(parsed) ? null : parsed
-}
-
-function conversationHasBlock(conversation: Conversation, predicate: (blockKind: string, extra: unknown) => boolean): boolean {
-  return conversation.messages.some((message) =>
-    message.blocks.some((block) => predicate(block.kind, block)),
-  )
-}
-
-/**
- * Выполняет поиск по беседам: свободный текст (или regex) + префиксные
- * фильтры tool/, from:, to:, in:, has:. Фильтры по дате/проекту/наличию
- * работают на уровне беседы, текстовый матчинг — на уровне блока, с учётом
- * выбранной области поиска.
- */
-export function runSearch(
-  conversations: Conversation[],
-  projects: Project[],
-  projectLinks: ProjectLink[],
-  index: SearchEntry[],
-  queryString: string,
-  options: SearchOptions,
-): SearchOutcome {
-  const parsed = parseQuery(queryString)
-  const matcher = compileTextMatcher(parsed.text, options.regexMode)
-  if (matcher.error) return { results: [], regexError: matcher.error }
-
-  const projectNameByUuid = new Map(projects.map((p) => [p.uuid, p.name]))
-  const projectUuidByConversation = new Map(projectLinks.map((l) => [l.conversationUuid, l.projectUuid]))
-
-  const fromTs = parsed.from ? toTimestamp(parsed.from, false) : null
-  const toTs = parsed.to ? toTimestamp(parsed.to, true) : null
-
-  const eligible = new Set<string>()
-  for (const conversation of conversations) {
-    const createdTs = Date.parse(conversation.createdAt)
-
-    if (fromTs !== null && (Number.isNaN(createdTs) || createdTs < fromTs)) continue
-    if (toTs !== null && (Number.isNaN(createdTs) || createdTs > toTs)) continue
-
-    if (parsed.projectName) {
-      const projectUuid = projectUuidByConversation.get(conversation.uuid)
-      const name = projectUuid ? projectNameByUuid.get(projectUuid) : null
-      if (!name || !name.toLowerCase().includes(parsed.projectName.toLowerCase())) continue
-    }
-
-    if (parsed.has.has('tools') && !conversationHasBlock(conversation, (kind) => kind === 'tool')) continue
-    if (
-      parsed.has.has('thinking') &&
-      !conversationHasBlock(
-        conversation,
-        (kind, block) => kind === 'thinking' && ((block as { summaries: string[] }).summaries.length > 0),
-      )
-    )
-      continue
-    if (
-      parsed.has.has('sources') &&
-      !conversationHasBlock(
-        conversation,
-        (kind, block) => kind === 'tool' && (block as Extract<Block, { kind: 'tool' }>).result.kind === 'sources',
-      )
-    )
-      continue
-
-    eligible.add(conversation.uuid)
-  }
+/** Ищет по тексту диалога: беседа попадает в результат, если хотя бы один её text-блок совпал. */
+export function runSearch(index: SearchEntry[], query: string): SearchResult[] {
+  const needle = normalizeQuery(query)
+  if (!needle) return []
 
   const counts = new Map<string, number>()
   for (const entry of index) {
-    if (!eligible.has(entry.conversationUuid)) continue
-
-    if (parsed.tool) {
-      if (entry.blockKind !== 'tool' || entry.toolName !== parsed.tool) continue
-    } else {
-      if (entry.blockKind === 'thinking' && !options.scope.thinking) continue
-      if (entry.blockKind === 'tool' && !options.scope.toolResults) continue
-    }
-
-    if (!matcher.test(entry.text)) continue
+    if (!matchesQuery(entry.text, needle)) continue
     counts.set(entry.conversationUuid, (counts.get(entry.conversationUuid) ?? 0) + 1)
   }
 
-  const noTextCondition = !parsed.text && !parsed.tool
-  const results: SearchResult[] = noTextCondition
-    ? [...eligible].map((uuid) => ({ conversationUuid: uuid, matchCount: counts.get(uuid) ?? 0 }))
-    : [...counts].map(([conversationUuid, matchCount]) => ({ conversationUuid, matchCount }))
+  return [...counts].map(([conversationUuid, matchCount]) => ({ conversationUuid, matchCount }))
+}
 
-  return { results, regexError: null }
+export interface DocSearchEntry {
+  projectUuid: string
+  docUuid: string
+  filename: string
+  text: string
+}
+
+export function buildDocIndex(projects: Project[]): DocSearchEntry[] {
+  const entries: DocSearchEntry[] = []
+  for (const project of projects) {
+    for (const doc of project.docs) {
+      entries.push({ projectUuid: project.uuid, docUuid: doc.uuid, filename: doc.filename, text: doc.content })
+    }
+  }
+  return entries
+}
+
+export interface ProjectSearchResult {
+  projectUuid: string
+  /** Число совпавших документов — не считает совпадение по имени/описанию проекта */
+  matchCount: number
+}
+
+/**
+ * Ищет проекты по имени, описанию и содержимому документов (U3) — тем же
+ * матчером, что и беседы. Проект попадает в результат при совпадении по
+ * любому из трёх, но счётчик на карточке отражает только документы.
+ */
+export function runProjectSearch(projects: Project[], docIndex: DocSearchEntry[], query: string): ProjectSearchResult[] {
+  const needle = normalizeQuery(query)
+  if (!needle) return []
+
+  const docMatchCounts = new Map<string, number>()
+  for (const entry of docIndex) {
+    if (!matchesQuery(entry.filename, needle) && !matchesQuery(entry.text, needle)) continue
+    docMatchCounts.set(entry.projectUuid, (docMatchCounts.get(entry.projectUuid) ?? 0) + 1)
+  }
+
+  const results: ProjectSearchResult[] = []
+  for (const project of projects) {
+    const matchCount = docMatchCounts.get(project.uuid) ?? 0
+    const matchesProjectItself = matchesQuery(project.name, needle) || matchesQuery(project.description, needle)
+    if (matchCount > 0 || matchesProjectItself) results.push({ projectUuid: project.uuid, matchCount })
+  }
+  return results
 }
