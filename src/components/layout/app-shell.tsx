@@ -45,7 +45,12 @@ export function AppShell({ children }: { children?: ReactNode }) {
         <SidebarHeader>
           <SidebarMenu>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild size="lg" tooltip={t('app.title')}>
+              <SidebarMenuButton
+                asChild
+                size="lg"
+                tooltip={t('app.title')}
+                className="group-data-[collapsible=icon]:p-2!"
+              >
                 <Link to="/">
                   <Archive />
                   <span className="text-sm font-semibold group-data-[collapsible=icon]:hidden">{t('app.title')}</span>
