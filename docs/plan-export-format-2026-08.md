@@ -372,12 +372,12 @@ interface Archive {
 
 Файлы: `src/components/layout/app-shell.tsx`, `package.json`, i18n
 
-- [ ] 7.1 Шапка сайдбара → `SidebarMenu` / `SidebarMenuItem` / `SidebarMenuButton size="lg"` со ссылкой на `/`, иконка `Archive`, `tooltip` с названием — заголовок перестаёт наплывать в icon-режиме (Q19)
-- [ ] 7.2 Футер: `Separator`, затем пункт «Автор: ArtMan-8» → `https://github.com/ArtMan-8`, `target="_blank" rel="noreferrer"`, приглушённый, с `tooltip` (Q12, Q13)
-- [ ] 7.3 Инлайн-SVG логотипа GitHub как компонент-иконка (в lucide 1.37 бренд-иконок нет) (Q14)
-- [ ] 7.4 `package.json`: `author`, `repository`, `homepage`
-- [ ] 7.5 i18n: `nav.author`, `nav.authorTooltip`
-- [ ] 7.6 Проверка в свёрнутом сайдбаре: видны только иконки, у обеих новых точек есть tooltip
+- [x] 7.1 Шапка сайдбара → `SidebarMenu` / `SidebarMenuItem` / `SidebarMenuButton size="lg"` со ссылкой на `/`, иконка `Archive`, `tooltip` с названием — заголовок перестаёт наплывать в icon-режиме (Q19)
+- [x] 7.2 Футер: `Separator`, затем пункт «Автор: ArtMan-8» → `https://github.com/ArtMan-8`, `target="_blank" rel="noreferrer"`, приглушённый, с `tooltip` (Q12, Q13)
+- [x] 7.3 Инлайн-SVG логотипа GitHub как компонент-иконка (в lucide 1.37 бренд-иконок нет) (Q14)
+- [x] 7.4 `package.json`: `author`, `repository`, `homepage`
+- [x] 7.5 i18n: `nav.author`, `nav.authorTooltip`
+- [x] 7.6 Проверка в свёрнутом сайдбаре: видны только иконки, у обеих новых точек есть tooltip
 
 **Критерий приёмки:** сайдбар в обоих состояниях без наплыва текста; ссылка открывается в новой вкладке.
 
@@ -414,7 +414,7 @@ interface Archive {
 **Слой 4 — поиск** ☑ 4.1 ☑ 4.2 ☑ 4.3 ☑ 4.4 ☑ 4.5 ☑ 4.6 ☑ 4.7 ☑ 4.8 ☑ 4.9 ☑ 4.10
 **Слой 5 — экспорт** ☑ 5.1 ☑ 5.2 ☑ 5.3 ☑ 5.4 ☑ 5.5 ☑ 5.6 ☑ 5.7
 **Слой 6 — детектор незнакомого** ☑ 6.1 ☑ 6.2 ☑ 6.3 ☑ 6.4 ☑ 6.5 ☑ 6.6
-**Слой 7 — интерфейс** ☐ 7.1 ☐ 7.2 ☐ 7.3 ☐ 7.4 ☐ 7.5 ☐ 7.6
+**Слой 7 — интерфейс** ☑ 7.1 ☑ 7.2 ☑ 7.3 ☑ 7.4 ☑ 7.5 ☑ 7.6
 
 Отметки проставляются в чек-листах раздела 6 по мере выполнения; этот раздел — сводка для быстрого взгляда.
 

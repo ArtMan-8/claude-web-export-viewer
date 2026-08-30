@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { Link, Outlet, useRouterState } from '@tanstack/react-router'
-import { LayoutDashboard, MessageSquare, FolderOpen, UserRound, RotateCcw } from 'lucide-react'
+import { Archive, LayoutDashboard, MessageSquare, FolderOpen, UserRound, RotateCcw } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import {
   Sidebar,
@@ -17,9 +17,12 @@ import {
   SidebarTrigger,
 } from '@/components/ui/sidebar'
 import { Separator } from '@/components/ui/separator'
+import { GithubIcon } from '@/components/common/github-icon'
 import { ThemeToggle } from './theme-toggle'
 import { LanguageToggle } from './language-toggle'
 import { useArchive } from '@/store/archive-store'
+
+const AUTHOR_GITHUB_URL = 'https://github.com/ArtMan-8'
 
 const NAV_ITEMS = [
   { to: '/', labelKey: 'nav.dashboard', icon: LayoutDashboard },
@@ -40,9 +43,16 @@ export function AppShell({ children }: { children?: ReactNode }) {
     <SidebarProvider className="h-svh">
       <Sidebar collapsible="icon">
         <SidebarHeader>
-          <div className="flex items-center gap-2 px-2 py-1.5">
-            <span className="text-sm font-semibold">{t('app.title')}</span>
-          </div>
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild size="lg" tooltip={t('app.title')}>
+                <Link to="/">
+                  <Archive />
+                  <span className="text-sm font-semibold group-data-[collapsible=icon]:hidden">{t('app.title')}</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
         </SidebarHeader>
         <SidebarContent>
           <SidebarGroup>
@@ -72,6 +82,17 @@ export function AppShell({ children }: { children?: ReactNode }) {
               <SidebarMenuButton onClick={reset} tooltip={t('nav.resetArchiveTooltip')}>
                 <RotateCcw />
                 <span>{t('nav.newArchive')}</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+          <Separator />
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild className="text-muted-foreground" tooltip={t('nav.authorTooltip')}>
+                <a href={AUTHOR_GITHUB_URL} target="_blank" rel="noreferrer">
+                  <GithubIcon />
+                  <span>{t('nav.author')}</span>
+                </a>
               </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>

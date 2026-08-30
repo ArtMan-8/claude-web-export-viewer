@@ -4,6 +4,12 @@
   "version": "1.0.0",
   "license": "MIT",
   "type": "module",
+  "author": "ArtMan-8",
+  "homepage": "https://github.com/ArtMan-8/claude-web-export-viewer",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ArtMan-8/claude-web-export-viewer.git"
+  },
   "keywords": [
     "claude",
     "claude-ai",

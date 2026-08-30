@@ -8,7 +8,9 @@
     "projects": "Проекты",
     "account": "Аккаунт",
     "newArchive": "Другой архив",
-    "resetArchiveTooltip": "Загрузить другой архив"
+    "resetArchiveTooltip": "Загрузить другой архив",
+    "author": "Автор: ArtMan-8",
+    "authorTooltip": "Профиль автора на GitHub"
   },
   "theme": {
     "system": "Тема: системная",

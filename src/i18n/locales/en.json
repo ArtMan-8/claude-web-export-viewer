@@ -8,7 +8,9 @@
     "projects": "Projects",
     "account": "Account",
     "newArchive": "Another archive",
-    "resetArchiveTooltip": "Load another archive"
+    "resetArchiveTooltip": "Load another archive",
+    "author": "Author: ArtMan-8",
+    "authorTooltip": "Author's GitHub profile"
   },
   "theme": {
     "system": "Theme: system",
