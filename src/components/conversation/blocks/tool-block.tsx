@@ -29,11 +29,21 @@ function inputSummary(input: unknown): string | null {
   return typeof value === 'string' ? value : null
 }
 
+function resultTextOf(block: Extract<Block, { kind: 'tool' }>): string {
+  const result = block.result
+  if (result.kind === 'command') return [result.stdout, result.stderr].filter(Boolean).join('\n')
+  if (result.kind === 'text') return result.text
+  if (result.kind === 'files') return result.files.map((f) => f.path).join('\n')
+  return ''
+}
+
 export function ToolBlock({ block }: { block: Extract<Block, { kind: 'tool' }> }) {
   const { t } = useTranslation()
   const [open, setOpen] = useState(false)
   const Icon = TOOL_ICONS[block.name] ?? Wrench
-  const summary = inputSummary(block.input)
+  const summary = inputSummary(block.rawInput)
+  const sources = block.result.kind === 'sources' ? block.result.sources : []
+  const resultText = resultTextOf(block)
 
   return (
     <Collapsible open={open} onOpenChange={setOpen} className="rounded-md border bg-muted/40">
@@ -49,15 +59,15 @@ export function ToolBlock({ block }: { block: Extract<Block, { kind: 'tool' }> }
         )}
       </CollapsibleTrigger>
       <CollapsibleContent className="space-y-2 px-3 pb-3 text-sm">
-        {block.input !== undefined && (
+        {block.rawInput !== undefined && (
           <pre className="overflow-x-auto rounded bg-background p-2 text-xs">
-            {JSON.stringify(block.input, null, 2)}
+            {JSON.stringify(block.rawInput, null, 2)}
           </pre>
         )}
 
-        {block.sources.length > 0 ? (
+        {sources.length > 0 ? (
           <ul className="space-y-1.5">
-            {block.sources.map((source, i) => (
+            {sources.map((source, i) => (
               <li key={`${source.url}-${i}`} className="text-sm">
                 <a
                   href={source.url}
@@ -73,14 +83,14 @@ export function ToolBlock({ block }: { block: Extract<Block, { kind: 'tool' }> }
             ))}
           </ul>
         ) : (
-          block.resultText && (
-            <pre className="overflow-x-auto whitespace-pre-wrap rounded bg-background p-2 text-xs">{block.resultText}</pre>
+          resultText && (
+            <pre className="overflow-x-auto whitespace-pre-wrap rounded bg-background p-2 text-xs">{resultText}</pre>
           )
         )}
 
         {!block.isPaired && (
           <p className="text-xs text-muted-foreground">
-            {block.input === undefined ? t('conversation.resultWithoutCall') : t('conversation.callWithoutResult')} —{' '}
+            {block.rawInput === undefined ? t('conversation.resultWithoutCall') : t('conversation.callWithoutResult')} —{' '}
             {t('conversation.incompleteData')}
           </p>
         )}

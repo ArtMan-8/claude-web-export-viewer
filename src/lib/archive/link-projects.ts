@@ -30,7 +30,8 @@ export function linkProjectsToConversations(conversations: Conversation[], proje
       for (const block of message.blocks) {
         if (block.kind !== 'tool' || block.name !== 'project_knowledge_search') continue
 
-        for (const fragment of block.resultFragments) {
+        const fragments = block.result.kind === 'text' ? block.result.fragments : []
+        for (const fragment of fragments) {
           const firstLine = fragment.split('\n', 1)[0]?.trim()
           if (!firstLine) continue
 

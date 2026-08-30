@@ -2,6 +2,7 @@ import type {
   RawContentBlock,
   RawConversation,
   RawLoginEvent,
+  RawMessage,
   RawProject,
   RawToolResultBlock,
   RawToolUseBlock,
@@ -11,11 +12,17 @@ import type {
   Block,
   Citation,
   Conversation,
+  ConversationFile,
+  ConversationFileRevision,
+  FileReconstructionError,
   KnowledgeSource,
   LoginEvent,
   Message,
   Project,
   ProjectDoc,
+  ResultFile,
+  ToolCall,
+  ToolResult,
   UserProfile,
 } from './model'
 
@@ -29,6 +36,70 @@ function domainFromUrl(url: string | undefined): string {
     return new URL(url).hostname.replace(/^www\./, '')
   } catch {
     return ''
+  }
+}
+
+function basename(path: string): string {
+  const parts = path.split('/')
+  return parts[parts.length - 1] || path
+}
+
+const EXTENSION_LANGUAGE: Record<string, string> = {
+  ts: 'typescript',
+  tsx: 'typescript',
+  js: 'javascript',
+  jsx: 'javascript',
+  mjs: 'javascript',
+  py: 'python',
+  md: 'markdown',
+  json: 'json',
+  css: 'css',
+  html: 'html',
+  sh: 'bash',
+  bash: 'bash',
+  yml: 'yaml',
+  yaml: 'yaml',
+  sql: 'sql',
+  rs: 'rust',
+  go: 'go',
+  java: 'java',
+  rb: 'ruby',
+  c: 'c',
+  cpp: 'cpp',
+  h: 'c',
+  toml: 'toml',
+  xml: 'xml',
+}
+
+function languageFromPath(path: string | null): string | null {
+  if (!path) return null
+  const ext = path.split('.').pop()
+  if (!ext || ext === path) return null
+  return EXTENSION_LANGUAGE[ext.toLowerCase()] ?? null
+}
+
+function languageFromDisplayContent(displayContent: unknown): string | null {
+  if (!isObject(displayContent) || displayContent.type !== 'json_block') return null
+  return typeof displayContent.language === 'string' ? displayContent.language : null
+}
+
+/** Ссылка-фолбэк для source, когда content[] не содержит knowledge-элементов. */
+function sourceFromRichLink(displayContent: unknown): KnowledgeSource | null {
+  if (!isObject(displayContent) || displayContent.type !== 'rich_link') return null
+  const link = displayContent.link
+  if (!isObject(link)) return null
+  const url = typeof link.url === 'string' ? link.url : ''
+  return {
+    title: typeof link.title === 'string' && link.title ? link.title : url,
+    url,
+    finalUrl: null,
+    domain: domainFromUrl(url),
+    siteName: null,
+    faviconUrl: null,
+    publishedAt: null,
+    snippet: Array.isArray(link.subtitles) ? link.subtitles.join(' · ') : '',
+    isMissing: false,
+    isCitable: true,
   }
 }
 
@@ -56,40 +127,144 @@ function extractResultFragments(content: RawToolResultBlock['content']): string[
   return fragments
 }
 
-function extractSources(result: RawToolResultBlock): KnowledgeSource[] {
-  const sources: KnowledgeSource[] = []
-
-  if (Array.isArray(result.content)) {
-    for (const item of result.content) {
-      if (isObject(item) && item.type === 'knowledge') {
-        const url = typeof item.url === 'string' ? item.url : ''
-        const metadata = isObject(item.metadata) ? item.metadata : undefined
-        sources.push({
-          title: typeof item.title === 'string' && item.title ? item.title : url,
-          url,
-          domain: (metadata?.site_domain as string | undefined) ?? domainFromUrl(url),
-          snippet: typeof item.text === 'string' ? item.text : '',
-          isMissing: Boolean(item.is_missing),
-        })
-      }
+function extractResultFiles(content: RawToolResultBlock['content']): ResultFile[] {
+  if (!Array.isArray(content)) return []
+  const files: ResultFile[] = []
+  for (const item of content) {
+    if (isObject(item) && item.type === 'local_resource') {
+      const path = typeof item.path === 'string' ? item.path : typeof item.file_path === 'string' ? item.file_path : ''
+      const name =
+        (typeof item.name === 'string' && item.name) || (typeof item.file_name === 'string' && item.file_name)
+          ? ((item.name as string) || (item.file_name as string))
+          : basename(path)
+      const mimeType = typeof item.mime_type === 'string' ? item.mime_type : null
+      const uuid = typeof item.uuid === 'string' ? item.uuid : typeof item.file_uuid === 'string' ? item.file_uuid : ''
+      files.push({ path, name, mimeType, uuid })
     }
   }
+  return files
+}
 
-  if (sources.length === 0 && isObject(result.display_content) && result.display_content.type === 'rich_link') {
-    const link = result.display_content.link
-    if (isObject(link)) {
-      const url = typeof link.url === 'string' ? link.url : ''
+function extractSourcesFromContent(content: RawToolResultBlock['content']): KnowledgeSource[] {
+  if (!Array.isArray(content)) return []
+  const sources: KnowledgeSource[] = []
+  for (const item of content) {
+    if (isObject(item) && item.type === 'knowledge') {
+      const url = typeof item.url === 'string' ? item.url : ''
+      const metadata = isObject(item.metadata) ? item.metadata : undefined
+      const promptMeta = isObject(item.prompt_context_metadata) ? item.prompt_context_metadata : undefined
       sources.push({
-        title: typeof link.title === 'string' && link.title ? link.title : url,
+        title: typeof item.title === 'string' && item.title ? item.title : url,
         url,
-        domain: domainFromUrl(url),
-        snippet: Array.isArray(link.subtitles) ? link.subtitles.join(' · ') : '',
-        isMissing: false,
+        finalUrl: typeof promptMeta?.final_url === 'string' ? promptMeta.final_url : null,
+        domain: (metadata?.site_domain as string | undefined) ?? domainFromUrl(url),
+        siteName: typeof metadata?.site_name === 'string' ? metadata.site_name : null,
+        faviconUrl: typeof metadata?.favicon_url === 'string' ? metadata.favicon_url : null,
+        publishedAt: typeof promptMeta?.age === 'string' ? promptMeta.age : null,
+        snippet: typeof item.text === 'string' ? item.text : '',
+        isMissing: Boolean(item.is_missing),
+        isCitable: Boolean(item.is_citable),
       })
     }
   }
-
   return sources
+}
+
+/**
+ * Распознаёт вид вызова инструмента по форме `input`, а не по имени —
+ * переживает инструменты из следующих выгрузок (см. §3.2 плана). Порядок
+ * проверок существен: у create_file есть и path, и file_text, поэтому
+ * fileWrite проверяется раньше fileRead.
+ */
+export function parseToolCall(input: unknown, displayContent: unknown): ToolCall {
+  if (!isObject(input)) return { kind: 'raw', input }
+
+  const filepaths = input.filepaths
+  if (Array.isArray(filepaths) && filepaths.every((p) => typeof p === 'string')) {
+    return { kind: 'filePresent', paths: filepaths }
+  }
+
+  const path = typeof input.path === 'string' ? input.path : null
+  const description = typeof input.description === 'string' ? input.description : ''
+
+  if (path && typeof input.old_str === 'string' && typeof input.new_str === 'string') {
+    return { kind: 'fileEdit', path, oldText: input.old_str, newText: input.new_str, description }
+  }
+
+  if (path && typeof input.file_text === 'string') {
+    const language = languageFromDisplayContent(displayContent) ?? languageFromPath(path)
+    return { kind: 'fileWrite', path, text: input.file_text, language, description }
+  }
+
+  if (typeof input.command === 'string') {
+    const language = languageFromDisplayContent(displayContent)
+    return { kind: 'command', command: input.command, description, language }
+  }
+
+  if (typeof input.url === 'string') {
+    return { kind: 'fetch', url: input.url }
+  }
+
+  if (typeof input.query === 'string') {
+    const maxResults = typeof input.max_text_results === 'number' ? input.max_text_results : null
+    return { kind: 'query', query: input.query, maxResults }
+  }
+
+  if (path) {
+    const range =
+      Array.isArray(input.view_range) &&
+      input.view_range.length === 2 &&
+      typeof input.view_range[0] === 'number' &&
+      typeof input.view_range[1] === 'number'
+        ? ([input.view_range[0], input.view_range[1]] as [number, number])
+        : null
+    return { kind: 'fileRead', path, range, description }
+  }
+
+  return { kind: 'raw', input }
+}
+
+function tryParseCommandOutput(text: string): { exitCode: number | null; stdout: string; stderr: string } | null {
+  let parsed: unknown
+  try {
+    parsed = JSON.parse(text)
+  } catch {
+    return null
+  }
+  if (!isObject(parsed) || !('returncode' in parsed)) return null
+  return {
+    exitCode: typeof parsed.returncode === 'number' ? parsed.returncode : null,
+    stdout: typeof parsed.stdout === 'string' ? parsed.stdout : '',
+    stderr: typeof parsed.stderr === 'string' ? parsed.stderr : '',
+  }
+}
+
+/**
+ * Распознаёт вид результата по форме `content[]` (см. §3.3 плана).
+ * Приоритет при (в данных не встречающейся) смеси форм: command > files >
+ * sources > text. Часть bash-результатов не парсится JSON-ом («Command
+ * output contains invalid UTF-8 data») — фолбэк на 'text' обязателен.
+ */
+export function parseToolResult(content: RawToolResultBlock['content'], displayContent: unknown): ToolResult {
+  const fragments = extractResultFragments(content)
+
+  if (fragments.length === 1) {
+    const parsed = tryParseCommandOutput(fragments[0])
+    if (parsed) return { kind: 'command', ...parsed, rawText: fragments[0] }
+  }
+
+  const files = extractResultFiles(content)
+  if (files.length > 0) return { kind: 'files', files }
+
+  const sources = extractSourcesFromContent(content)
+  if (sources.length > 0) return { kind: 'sources', sources }
+
+  if (fragments.length > 0) return { kind: 'text', text: fragments.join('\n\n'), fragments }
+
+  const richLinkSource = sourceFromRichLink(displayContent)
+  if (richLinkSource) return { kind: 'sources', sources: [richLinkSource] }
+
+  return { kind: 'none' }
 }
 
 /**
@@ -113,7 +288,12 @@ function normalizeBlocks(rawBlocks: RawContentBlock[]): Block[] {
     switch (raw.type) {
       case 'text': {
         const text = 'text' in raw && typeof raw.text === 'string' ? raw.text : ''
-        blocks.push({ kind: 'text', text, citations: extractCitations(raw) })
+        blocks.push({
+          kind: 'text',
+          text,
+          citations: extractCitations(raw),
+          citationsGroupingMode: typeof raw.citations_grouping_mode === 'string' ? raw.citations_grouping_mode : null,
+        })
         break
       }
       case 'thinking': {
@@ -122,7 +302,12 @@ function normalizeBlocks(rawBlocks: RawContentBlock[]): Block[] {
           : []
         const text = typeof raw.thinking === 'string' ? raw.thinking : ''
         // thinking почти всегда скрыт (thinking_hidden: true) — реальный смысл в summaries
-        blocks.push({ kind: 'thinking', summaries, text })
+        blocks.push({
+          kind: 'thinking',
+          summaries,
+          text,
+          isTruncated: Boolean(raw.truncated) || Boolean(raw.cut_off),
+        })
         break
       }
       case 'tool_use': {
@@ -131,15 +316,18 @@ function normalizeBlocks(rawBlocks: RawContentBlock[]): Block[] {
         const use = raw as RawToolUseBlock
         const result = resultsByUseId.get(use.id)
         if (result) consumedResultIds.add(use.id)
-        const fragments = result ? extractResultFragments(result.content) : []
         blocks.push({
           kind: 'tool',
           toolUseId: use.id,
           name: use.name,
-          input: use.input,
-          resultFragments: fragments,
-          resultText: fragments.join('\n\n'),
-          sources: result ? extractSources(result) : [],
+          label: typeof use.message === 'string' ? use.message : null,
+          integrationName: use.integration_name ?? null,
+          integrationIconUrl: use.integration_icon_url ?? null,
+          iconName: use.icon_name ?? null,
+          toolOrigin: use.tool_origin ?? null,
+          call: parseToolCall(use.input, use.display_content),
+          result: result ? parseToolResult(result.content, result.display_content) : { kind: 'none' },
+          rawInput: use.input,
           isError: Boolean(result?.is_error),
           isPaired: Boolean(result),
         })
@@ -149,15 +337,18 @@ function normalizeBlocks(rawBlocks: RawContentBlock[]): Block[] {
         const result = raw as RawToolResultBlock
         if (consumedResultIds.has(result.tool_use_id)) break // уже показан вместе с tool_use
         // осиротевший результат без своего tool_use — редкость, но данные нестабильны
-        const fragments = extractResultFragments(result.content)
         blocks.push({
           kind: 'tool',
           toolUseId: result.tool_use_id,
           name: result.name,
-          input: undefined,
-          resultFragments: fragments,
-          resultText: fragments.join('\n\n'),
-          sources: extractSources(result),
+          label: null,
+          integrationName: null,
+          integrationIconUrl: null,
+          iconName: null,
+          toolOrigin: null,
+          call: { kind: 'none' },
+          result: parseToolResult(result.content, result.display_content),
+          rawInput: undefined,
           isError: Boolean(result.is_error),
           isPaired: false,
         })
@@ -171,11 +362,127 @@ function normalizeBlocks(rawBlocks: RawContentBlock[]): Block[] {
   return blocks
 }
 
+interface FileOp {
+  path: string
+  op: 'create' | 'edit'
+  text: string // fileWrite: полное содержимое; fileEdit: newText
+  oldText: string | null // только для edit
+  timestamp: string
+  messageUuid: string
+  toolUseId: string
+}
+
+/**
+ * Восстанавливает содержимое файлов беседы из create_file/str_replace.
+ * Файл целиком встречается только в create_file.input.file_text; str_replace
+ * хранит фрагменты. Каждый шаг верифицируется: old_str обязан встретиться в
+ * текущем содержимом ровно один раз — иначе реконструкция отклоняется, а не
+ * молча отдаёт неверные данные (см. §3.5 плана).
+ */
+export function collectConversationFiles(rawMessages: RawMessage[]): ConversationFile[] {
+  const ops: FileOp[] = []
+  const presentedPaths = new Set<string>()
+  const metaByPath = new Map<string, { name: string; mimeType: string | null }>()
+
+  for (const message of rawMessages) {
+    const content = message.content ?? []
+    const resultsByUseId = new Map<string, RawToolResultBlock>()
+    for (const raw of content) {
+      if (raw.type === 'tool_result') resultsByUseId.set((raw as RawToolResultBlock).tool_use_id, raw as RawToolResultBlock)
+    }
+
+    for (const raw of content) {
+      if (raw.type !== 'tool_use') continue
+      const use = raw as RawToolUseBlock
+      const call = parseToolCall(use.input, use.display_content)
+      const timestamp = use.start_timestamp ?? message.created_at
+
+      if (call.kind === 'fileWrite') {
+        ops.push({ path: call.path, op: 'create', text: call.text, oldText: null, timestamp, messageUuid: message.uuid, toolUseId: use.id })
+      } else if (call.kind === 'fileEdit') {
+        ops.push({ path: call.path, op: 'edit', text: call.newText, oldText: call.oldText, timestamp, messageUuid: message.uuid, toolUseId: use.id })
+      } else if (call.kind === 'filePresent') {
+        for (const path of call.paths) presentedPaths.add(path)
+        const result = resultsByUseId.get(use.id)
+        if (result) {
+          for (const file of extractResultFiles(result.content)) {
+            metaByPath.set(file.path, { name: file.name, mimeType: file.mimeType })
+          }
+        }
+      }
+    }
+  }
+
+  const opsByPath = new Map<string, FileOp[]>()
+  for (const op of ops) {
+    const list = opsByPath.get(op.path)
+    if (list) list.push(op)
+    else opsByPath.set(op.path, [op])
+  }
+
+  const files: ConversationFile[] = []
+
+  for (const [path, pathOps] of opsByPath) {
+    const revisions: ConversationFileRevision[] = []
+    let content: string | null = null
+    let reconstructionError: FileReconstructionError | null = null
+
+    for (const op of pathOps) {
+      if (op.op === 'create') {
+        content = op.text
+        revisions.push({ messageUuid: op.messageUuid, toolUseId: op.toolUseId, op: 'create', at: op.timestamp, sizeAfter: content.length })
+        continue
+      }
+
+      // edit
+      if (content === null) {
+        reconstructionError = 'noCreate'
+        revisions.push({ messageUuid: op.messageUuid, toolUseId: op.toolUseId, op: 'edit', at: op.timestamp, sizeAfter: 0 })
+        break
+      }
+
+      const oldText = op.oldText ?? ''
+      const occurrences = content.split(oldText).length - 1
+      if (occurrences === 0) {
+        reconstructionError = 'missingEdit'
+        revisions.push({ messageUuid: op.messageUuid, toolUseId: op.toolUseId, op: 'edit', at: op.timestamp, sizeAfter: content.length })
+        break
+      }
+      if (occurrences > 1) {
+        reconstructionError = 'ambiguousEdit'
+        revisions.push({ messageUuid: op.messageUuid, toolUseId: op.toolUseId, op: 'edit', at: op.timestamp, sizeAfter: content.length })
+        break
+      }
+
+      content = content.replace(oldText, op.text)
+      revisions.push({ messageUuid: op.messageUuid, toolUseId: op.toolUseId, op: 'edit', at: op.timestamp, sizeAfter: content.length })
+    }
+
+    if (reconstructionError) content = null
+
+    const meta = metaByPath.get(path)
+    files.push({
+      path,
+      name: meta?.name ?? basename(path),
+      mimeType: meta?.mimeType ?? null,
+      language: languageFromPath(path),
+      revisions,
+      isPresented: presentedPaths.has(path),
+      content,
+      reconstructionError,
+      finalSize: content !== null ? content.length : null,
+    })
+  }
+
+  return files
+}
+
 /** Фиктивный parent_message_uuid у самого первого сообщения беседы — не настоящая ссылка. */
 const ROOT_PARENT_SENTINEL = '00000000-0000-4000-8000-000000000000'
 
 export function normalizeConversation(raw: RawConversation): Conversation {
-  const messages: Message[] = (raw.chat_messages ?? []).map((rawMessage) => {
+  const rawMessages = raw.chat_messages ?? []
+  const messages: Message[] = rawMessages.map((rawMessage) => {
     const blocks = normalizeBlocks(rawMessage.content ?? [])
     return {
       uuid: rawMessage.uuid,
@@ -202,6 +509,7 @@ export function normalizeConversation(raw: RawConversation): Conversation {
     // Не только 0 сообщений, но и беседа, где каждое сообщение само по себе пусто —
     // такое встречается у сорвавшихся генераций (сбой без единого блока контента)
     isEmpty: messages.length === 0 || messages.every((m) => m.isEmpty),
+    files: collectConversationFiles(rawMessages),
     raw,
   }
 }

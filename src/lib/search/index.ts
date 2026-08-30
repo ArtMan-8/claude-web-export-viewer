@@ -1,4 +1,4 @@
-import type { Conversation, Project, ProjectLink } from '@/lib/archive/model'
+import type { Block, Conversation, Project, ProjectLink } from '@/lib/archive/model'
 import { compileTextMatcher, parseQuery } from './query'
 
 export type SearchBlockKind = 'text' | 'thinking' | 'tool'
@@ -44,7 +44,7 @@ export function buildSearchIndex(conversations: Conversation[]): SearchEntry[] {
             createdAt: message.createdAt,
             blockKind: 'tool',
             toolName: block.name,
-            text: block.resultText,
+            text: block.result.kind === 'text' ? block.result.text : '',
           })
         }
       }
@@ -138,7 +138,7 @@ export function runSearch(
       parsed.has.has('sources') &&
       !conversationHasBlock(
         conversation,
-        (kind, block) => kind === 'tool' && (block as { sources: unknown[] }).sources.length > 0,
+        (kind, block) => kind === 'tool' && (block as Extract<Block, { kind: 'tool' }>).result.kind === 'sources',
       )
     )
       continue

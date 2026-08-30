@@ -20,5 +20,6 @@ export function buildArchive(files: RawFileInput[]): Archive {
     loginEvents,
     projectLinks,
     warnings: raw.warnings,
+    exportedAt: raw.manifestCreatedAt,
   }
 }

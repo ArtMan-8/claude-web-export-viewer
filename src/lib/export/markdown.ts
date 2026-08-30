@@ -21,25 +21,30 @@ function yamlString(value: string): string {
 
 function renderTool(block: Extract<Block, { kind: 'tool' }>): string {
   const parts: string[] = []
-  const label = i18next.t(`tools.${block.name}`, block.name)
+  const label = block.label ?? i18next.t(`tools.${block.name}`, block.name)
   const summary = block.isError ? `⚠️ ${label} (${i18next.t('common.error')})` : label
 
   parts.push(`<details>\n<summary>${summary}</summary>\n`)
 
-  if (block.input !== undefined) {
-    parts.push('\n```json\n' + JSON.stringify(block.input, null, 2) + '\n```\n')
+  if (block.rawInput !== undefined) {
+    parts.push('\n```json\n' + JSON.stringify(block.rawInput, null, 2) + '\n```\n')
   }
 
-  if (block.sources.length > 0) {
+  const result = block.result
+  if (result.kind === 'sources') {
     parts.push(
       '\n' +
-        block.sources
+        result.sources
           .map((s) => `- [${s.title || s.url || i18next.t('common.source')}](${s.url})${s.snippet ? ` — ${s.snippet}` : ''}`)
           .join('\n') +
         '\n',
     )
-  } else if (block.resultText) {
-    parts.push('\n```\n' + block.resultText + '\n```\n')
+  } else if (result.kind === 'command') {
+    parts.push('\n```\n' + [result.stdout, result.stderr].filter(Boolean).join('\n') + '\n```\n')
+  } else if (result.kind === 'files') {
+    parts.push('\n' + result.files.map((f) => `- ${f.path}`).join('\n') + '\n')
+  } else if (result.kind === 'text' && result.text) {
+    parts.push('\n```\n' + result.text + '\n```\n')
   }
 
   parts.push('\n</details>')

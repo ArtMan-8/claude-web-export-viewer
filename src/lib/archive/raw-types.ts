@@ -78,10 +78,22 @@ interface RawBlockCommon {
   stop_timestamp?: string
 }
 
+export interface RawDisplayContent {
+  type: string
+  language?: string | null
+  filename?: string | null
+  code?: string | null
+  text?: string | null
+  link?: { title?: string; url?: string; subtitles?: string[] }
+  content?: unknown[]
+  [key: string]: unknown
+}
+
 export interface RawTextBlock extends RawBlockCommon {
   type: 'text'
   text: string
   citations?: RawCitation[]
+  citations_grouping_mode?: string | null
 }
 
 export interface RawThinkingBlock extends RawBlockCommon {
@@ -90,6 +102,10 @@ export interface RawThinkingBlock extends RawBlockCommon {
   summaries?: { summary: string }[]
   thinking_hidden?: boolean
   hidden?: boolean
+  truncated?: boolean
+  cut_off?: boolean
+  signature?: string
+  alternative_display_type?: string | null
 }
 
 export interface RawToolUseBlock extends RawBlockCommon {
@@ -97,32 +113,59 @@ export interface RawToolUseBlock extends RawBlockCommon {
   id: string
   name: string
   input: unknown
-  message?: string
+  message?: string | null
   integration_name?: string | null
+  integration_icon_url?: string | null
   icon_name?: string | null
+  tool_origin?: string | null
+  display_content?: RawDisplayContent | null
 }
 
 export interface RawKnowledgeItem {
   type: string
+  uuid?: string
   title?: string
   url?: string
   text?: string
   is_missing?: boolean
-  metadata?: { site_domain?: string; site_name?: string; [key: string]: unknown }
+  is_citable?: boolean
+  metadata?: {
+    site_domain?: string
+    site_name?: string
+    favicon_url?: string
+    [key: string]: unknown
+  }
+  prompt_context_metadata?: {
+    age?: string
+    final_url?: string
+    search_provider?: string
+    [key: string]: unknown
+  }
+}
+
+export interface RawLocalResourceItem {
+  type: 'local_resource'
+  uuid?: string
+  file_uuid?: string
+  path?: string
+  file_path?: string
+  name?: string
+  file_name?: string
+  mime_type?: string
+  [key: string]: unknown
 }
 
 export interface RawToolResultBlock extends RawBlockCommon {
   type: 'tool_result'
   tool_use_id: string
   name: string
-  content: (RawKnowledgeItem | { type: 'text'; text: string } | Record<string, unknown>)[] | string | null
+  content:
+    | (RawKnowledgeItem | RawLocalResourceItem | { type: 'text'; text: string; uuid?: string } | Record<string, unknown>)[]
+    | string
+    | null
   is_error?: boolean
-  display_content?: {
-    type: string
-    link?: { title?: string; url?: string; subtitles?: string[] }
-    content?: unknown[]
-    [key: string]: unknown
-  } | null
+  display_content?: RawDisplayContent | null
+  meta?: { output_format_category?: string; [key: string]: unknown } | null
 }
 
 export interface RawUnknownBlock extends RawBlockCommon {

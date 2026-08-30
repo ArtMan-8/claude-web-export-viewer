@@ -14,16 +14,19 @@ export interface ArchiveStats {
   projectCount: number
   docCount: number
   docsCharacters: number
+  fileCount: number
 }
 
 export function computeStats(archive: Archive): ArchiveStats {
   let messageCount = 0
   let minDate: string | null = null
   let maxDate: string | null = null
+  let fileCount = 0
   const toolCounts = new Map<string, number>()
 
   for (const conversation of archive.conversations) {
     messageCount += conversation.messages.length
+    fileCount += conversation.files.length
 
     for (const date of [conversation.createdAt, conversation.updatedAt]) {
       if (!date) continue
@@ -60,5 +63,6 @@ export function computeStats(archive: Archive): ArchiveStats {
     projectCount: archive.projects.length,
     docCount,
     docsCharacters,
+    fileCount,
   }
 }
