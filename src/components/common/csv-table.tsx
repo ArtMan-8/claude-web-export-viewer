@@ -1,9 +1,9 @@
-import { useMemo } from 'react'
+import { memo, useMemo } from 'react'
 import Papa from 'papaparse'
 import { useTranslation } from 'react-i18next'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '~/components/ui/table'
 
-export function CsvTable({ content }: { content: string }) {
+export const CsvTable = memo(function CsvTable({ content }: { content: string }) {
   const { t } = useTranslation()
 
   const parsed = useMemo(() => Papa.parse<string[]>(content, { skipEmptyLines: true }), [content])
@@ -35,4 +35,4 @@ export function CsvTable({ content }: { content: string }) {
       </Table>
     </div>
   )
-}
+})
