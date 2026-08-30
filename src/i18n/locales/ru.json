@@ -63,6 +63,7 @@
   "project": {
     "export": "Экспорт",
     "exportDocsZip": "Документы (.zip)",
+    "description": "Описание проекта",
     "userInstructions": "Пользовательские инструкции проекта",
     "linkedConversations": "Беседы этого проекта (определено по документам)",
     "searchDocs": "Поиск по документам",

@@ -63,6 +63,7 @@
   "project": {
     "export": "Export",
     "exportDocsZip": "Documents (.zip)",
+    "description": "Project description",
     "userInstructions": "Custom project instructions",
     "linkedConversations": "Conversations in this project (inferred from documents)",
     "searchDocs": "Search documents",

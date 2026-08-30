@@ -25,14 +25,16 @@ export function ProjectView({ project }: { project: Project }) {
   const [filter, setFilter] = useState('')
   const debouncedFilter = useDebouncedValue(filter, 500)
   const [selectedDocUuid, setSelectedDocUuid] = useState(project.docs[0]?.uuid ?? null)
+  const [descriptionOpen, setDescriptionOpen] = useState(false)
   const [promptOpen, setPromptOpen] = useState(false)
   const docScrollRef = useRef<HTMLDivElement>(null)
 
   // Компонент маршрута переиспользуется между проектами — без сброса состояние
-  // (раскрытые инструкции, поиск, выбранный документ) утекало бы из одного проекта в другой
+  // (раскрытые описание/инструкции, поиск, выбранный документ) утекало бы из одного проекта в другой
   useEffect(() => {
     setFilter('')
     setSelectedDocUuid(project.docs[0]?.uuid ?? null)
+    setDescriptionOpen(false)
     setPromptOpen(false)
   }, [project.uuid])
 
@@ -71,7 +73,6 @@ export function ProjectView({ project }: { project: Project }) {
       <div className="flex items-start gap-3 border-b px-4 py-3">
         <div className="min-w-0 flex-1">
           <h2 className="text-sm font-semibold">{projectDisplayName}</h2>
-          {project.description && <p className="mt-1 text-sm text-muted-foreground">{project.description}</p>}
         </div>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -89,6 +90,18 @@ export function ProjectView({ project }: { project: Project }) {
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+
+      {project.description && (
+        <Collapsible open={descriptionOpen} onOpenChange={setDescriptionOpen} className="border-b px-4 py-2">
+          <CollapsibleTrigger className="flex items-center gap-1 text-sm font-medium text-muted-foreground">
+            <ChevronDown className={`size-3.5 transition-transform ${descriptionOpen ? '' : '-rotate-90'}`} />
+            {t('project.description')}
+          </CollapsibleTrigger>
+          <CollapsibleContent className="pt-2">
+            <p className="text-sm text-muted-foreground">{project.description}</p>
+          </CollapsibleContent>
+        </Collapsible>
+      )}
 
       {project.promptTemplate && (
         <Collapsible open={promptOpen} onOpenChange={setPromptOpen} className="border-b px-4 py-2">
