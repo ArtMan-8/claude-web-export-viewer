@@ -7,7 +7,7 @@ function msg(uuid: string, parentUuid: string | null, createdAt: string): Messag
 }
 
 describe('buildThread', () => {
-  it('линейная беседа возвращается как есть', () => {
+  test('линейная беседа возвращается как есть', () => {
     const messages = [
       msg('a', null, '2026-01-01T00:00:00Z'),
       msg('b', 'a', '2026-01-01T00:01:00Z'),
@@ -21,7 +21,7 @@ describe('buildThread', () => {
     expect(result.branches.size).toBe(0)
   })
 
-  it('при ветвлении выбирает ветку с самой поздней активностью', () => {
+  test('при ветвлении выбирает ветку с самой поздней активностью', () => {
     const messages = [
       msg('a', null, '2026-01-01T00:00:00Z'),
       // редактирование: у 'a' два ребёнка
@@ -37,7 +37,7 @@ describe('buildThread', () => {
     expect(result.branches.get('a')?.map((m) => m.uuid)).toEqual(['b-old', 'b-new'])
   })
 
-  it('откатывается на порядок массива при цикле в parent_message_uuid', () => {
+  test('откатывается на порядок массива при цикле в parent_message_uuid', () => {
     const messages = [msg('a', 'b', '2026-01-01T00:00:00Z'), msg('b', 'a', '2026-01-01T00:01:00Z')]
 
     const result = buildThread(messages)
@@ -47,7 +47,7 @@ describe('buildThread', () => {
     expect(result.mainBranch).toHaveLength(2)
   })
 
-  it('откатывается на порядок массива при битой ссылке (сироте)', () => {
+  test('откатывается на порядок массива при битой ссылке (сироте)', () => {
     const messages = [msg('a', null, '2026-01-01T00:00:00Z'), msg('b', 'no-such-parent', '2026-01-01T00:01:00Z')]
 
     const result = buildThread(messages)
@@ -56,7 +56,7 @@ describe('buildThread', () => {
     expect(result.mainBranch).toHaveLength(2)
   })
 
-  it('пустой список сообщений не падает', () => {
+  test('пустой список сообщений не падает', () => {
     const result = buildThread([])
     expect(result.mainBranch).toEqual([])
     expect(result.fallbackToArrayOrder).toBe(false)
@@ -64,7 +64,7 @@ describe('buildThread', () => {
 })
 
 describe('resolveDisplayPath', () => {
-  it('без переключений совпадает с главной веткой', () => {
+  test('без переключений совпадает с главной веткой', () => {
     const messages = [
       msg('a', null, '2026-01-01T00:00:00Z'),
       msg('b-old', 'a', '2026-01-01T00:01:00Z'),
@@ -74,7 +74,7 @@ describe('resolveDisplayPath', () => {
     expect(resolveDisplayPath(thread, {}).map((m) => m.uuid)).toEqual(['a', 'b-new'])
   })
 
-  it('переключение на альтернативную ветку меняет хвост пути', () => {
+  test('переключение на альтернативную ветку меняет хвост пути', () => {
     const messages = [
       msg('a', null, '2026-01-01T00:00:00Z'),
       msg('b-old', 'a', '2026-01-01T00:01:00Z'),
@@ -84,7 +84,7 @@ describe('resolveDisplayPath', () => {
     expect(resolveDisplayPath(thread, { a: 'b-old' }).map((m) => m.uuid)).toEqual(['a', 'b-old'])
   })
 
-  it('поддерживает вложенное переключение на второй развилке внутри альтернативной ветки', () => {
+  test('поддерживает вложенное переключение на второй развилке внутри альтернативной ветки', () => {
     const messages = [
       msg('a', null, '2026-01-01T00:00:00Z'),
       msg('b-old', 'a', '2026-01-01T00:01:00Z'),
@@ -97,7 +97,7 @@ describe('resolveDisplayPath', () => {
     expect(path.map((m) => m.uuid)).toEqual(['a', 'b-old', 'c-old'])
   })
 
-  it('в режиме фолбэка возвращает mainBranch как есть', () => {
+  test('в режиме фолбэка возвращает mainBranch как есть', () => {
     const messages = [msg('a', 'b', '2026-01-01T00:00:00Z'), msg('b', 'a', '2026-01-01T00:01:00Z')]
     const thread = buildThread(messages)
     expect(resolveDisplayPath(thread, { a: 'b' })).toEqual(thread.mainBranch)

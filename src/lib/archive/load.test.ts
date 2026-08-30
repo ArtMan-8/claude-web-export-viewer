@@ -16,7 +16,7 @@ function zipFile(name: string, entries: Record<string, unknown>): RawFileInput {
 }
 
 describe('loadRawArchive', () => {
-  it('читает conversations.json и projects/*.json из zip-архивов', () => {
+  test('читает conversations.json и projects/*.json из zip-архивов', () => {
     const conversationsZip = zipFile('conversations-000.zip', {
       'conversations.json': [makeConversation({ uuid: 'a' }), makeConversation({ uuid: 'b' })],
     })
@@ -31,7 +31,7 @@ describe('loadRawArchive', () => {
     expect(result.warnings).toEqual([])
   })
 
-  it('читает users.json и login_history.json', () => {
+  test('читает users.json и login_history.json', () => {
     const metaZip = zipFile('light_metadata-000.zip', {
       'users.json': [{ uuid: 'u1', full_name: 'Тест', email_address: 't@example.com', verified_phone_number: null }],
       'login_history.json': {
@@ -54,17 +54,17 @@ describe('loadRawArchive', () => {
     expect(result.loginEvents).toHaveLength(1)
   })
 
-  it('работает без манифеста, определяя тип файла по форме содержимого', () => {
+  test('работает без манифеста, определяя тип файла по форме содержимого', () => {
     const result = loadRawArchive([jsonFile('conversations.json', [makeConversation()])])
     expect(result.conversations).toHaveLength(1)
   })
 
-  it('поддерживает старый плоский формат: единый projects.json со списком проектов', () => {
+  test('поддерживает старый плоский формат: единый projects.json со списком проектов', () => {
     const result = loadRawArchive([jsonFile('projects.json', [makeProject({ uuid: 'p1' }), makeProject({ uuid: 'p2' })])])
     expect(result.projects.map((p) => p.uuid)).toEqual(['p1', 'p2'])
   })
 
-  it('предупреждает о файле из манифеста, который не был загружен', () => {
+  test('предупреждает о файле из манифеста, который не был загружен', () => {
     const manifest = jsonFile('manifest-x.json', {
       instructions: '',
       created_at: '',
@@ -84,7 +84,7 @@ describe('loadRawArchive', () => {
     )
   })
 
-  it('не падает на битом JSON, а копит предупреждение и продолжает', () => {
+  test('не падает на битом JSON, а копит предупреждение и продолжает', () => {
     const broken: RawFileInput = { name: 'broken.json', bytes: strToU8('{ not json') }
     const good = jsonFile('conversations.json', [makeConversation()])
 
@@ -94,7 +94,7 @@ describe('loadRawArchive', () => {
     expect(result.warnings.some((w) => w.code === 'jsonParseFailed' && w.params?.file === 'broken.json')).toBe(true)
   })
 
-  it('бросает ошибку, если не найдено вообще ничего узнаваемого', () => {
+  test('бросает ошибку, если не найдено вообще ничего узнаваемого', () => {
     expect(() => loadRawArchive([jsonFile('random.json', { foo: 'bar' })])).toThrow()
   })
 })

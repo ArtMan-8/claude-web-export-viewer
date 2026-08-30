@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { parseManifest } from './manifest'
 
 describe('parseManifest', () => {
-  it('разбирает обычный манифест', () => {
+  test('разбирает обычный манифест', () => {
     const manifest = parseManifest({
       instructions: '...',
       created_at: '2026-08-29T10:11:55.612791+00:00',
@@ -21,7 +21,7 @@ describe('parseManifest', () => {
     ])
   })
 
-  it('поддерживает шардирование по part (несколько файлов одной категории)', () => {
+  test('поддерживает шардирование по part (несколько файлов одной категории)', () => {
     const manifest = parseManifest({
       instructions: '',
       created_at: '',
@@ -36,7 +36,7 @@ describe('parseManifest', () => {
     expect(manifest.entries.map((e) => e.filename)).toEqual(['conversations-000.zip', 'conversations-001.zip'])
   })
 
-  it('пропускает неизвестную категорию, а не отбрасывает файл', () => {
+  test('пропускает неизвестную категорию, а не отбрасывает файл', () => {
     const manifest = parseManifest({
       instructions: '',
       created_at: '',
@@ -48,7 +48,7 @@ describe('parseManifest', () => {
     expect(manifest.entries).toEqual([{ category: 'memories', part: 0, filename: 'memories-000.zip' }])
   })
 
-  it('бросает ошибку, если это не манифест', () => {
+  test('бросает ошибку, если это не манифест', () => {
     expect(() => parseManifest({ foo: 'bar' })).toThrow()
     expect(() => parseManifest(null)).toThrow()
     expect(() => parseManifest([1, 2, 3])).toThrow()

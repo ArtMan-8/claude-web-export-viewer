@@ -10,7 +10,7 @@ describe('conversationToMarkdown', () => {
     await i18next.changeLanguage('ru')
   })
 
-  it('рендерит frontmatter, реплики и сноски для цитат', () => {
+  test('рендерит frontmatter, реплики и сноски для цитат', () => {
     const conversation = normalizeConversation(
       makeConversation({
         uuid: 'conv-1',
@@ -40,7 +40,7 @@ describe('conversationToMarkdown', () => {
     expect(markdown).toContain('[^1]: https://example.com')
   })
 
-  it('скрывает блоки инструментов по умолчанию и показывает по флагу', () => {
+  test('скрывает блоки инструментов по умолчанию и показывает по флагу', () => {
     const conversation = normalizeConversation(
       makeConversation({
         chat_messages: [
@@ -60,19 +60,19 @@ describe('conversationToMarkdown', () => {
     expect(withTools).toContain('Поиск в вебе')
   })
 
-  it('помечает пустые сообщения', () => {
+  test('помечает пустые сообщения', () => {
     const conversation = normalizeConversation(makeConversation({ chat_messages: [makeMessage({ content: [] })] }))
     expect(conversationToMarkdown(conversation, { includeTools: false })).toContain('*(пустое сообщение)*')
   })
 
-  it('беседа без названия получает заголовок "Без названия"', () => {
+  test('беседа без названия получает заголовок "Без названия"', () => {
     const conversation = normalizeConversation(makeConversation({ name: '', chat_messages: [] }))
     const markdown = conversationToMarkdown(conversation, { includeTools: false })
     expect(markdown).toContain('title: "Без названия"')
     expect(markdown).toContain('# Без названия')
   })
 
-  it('рендерит command: фрагмент кода команды + код возврата и вывод результата', () => {
+  test('рендерит command: фрагмент кода команды + код возврата и вывод результата', () => {
     const conversation = normalizeConversation(
       makeConversation({
         chat_messages: [
@@ -95,7 +95,7 @@ describe('conversationToMarkdown', () => {
     expect(markdown).toContain('файл.txt')
   })
 
-  it('рендерит fileEdit: путь и diff-блок с удалённым/добавленным текстом', () => {
+  test('рендерит fileEdit: путь и diff-блок с удалённым/добавленным текстом', () => {
     const conversation = normalizeConversation(
       makeConversation({
         chat_messages: [
@@ -114,7 +114,7 @@ describe('conversationToMarkdown', () => {
     expect(markdown).toContain('+ стало')
   })
 
-  it('рендерит fileRead: путь и диапазон строк', () => {
+  test('рендерит fileRead: путь и диапазон строк', () => {
     const conversation = normalizeConversation(
       makeConversation({
         chat_messages: [
@@ -130,7 +130,7 @@ describe('conversationToMarkdown', () => {
     expect(markdown).toContain('`a.md` (1–10)')
   })
 
-  it('рендерит fetch и query строкой без обёртки', () => {
+  test('рендерит fetch и query строкой без обёртки', () => {
     const conversation = normalizeConversation(
       makeConversation({
         chat_messages: [
@@ -154,7 +154,7 @@ describe('conversationToMarkdown', () => {
     expect(markdown).toContain('тестовый запрос')
   })
 
-  it('рендерит sources: список ссылок с датой публикации', () => {
+  test('рендерит sources: список ссылок с датой публикации', () => {
     const conversation = normalizeConversation(
       makeConversation({
         chat_messages: [
@@ -182,7 +182,7 @@ describe('conversationToMarkdown', () => {
     expect(markdown).toContain('- [Заголовок](https://example.com) — October 24, 2024')
   })
 
-  it('рендерит files-результат present_files ссылкой на раздел «Файлы»', () => {
+  test('рендерит files-результат present_files ссылкой на раздел «Файлы»', () => {
     const conversation = normalizeConversation(
       makeConversation({
         chat_messages: [
@@ -207,7 +207,7 @@ describe('conversationToMarkdown', () => {
     expect(markdown).toContain('[`a.md`](#amd)')
   })
 
-  it('раздел «Файлы» — всегда в конце документа, с полным содержимым, независимо от includeTools', () => {
+  test('раздел «Файлы» — всегда в конце документа, с полным содержимым, независимо от includeTools', () => {
     const conversation = normalizeConversation(
       makeConversation({
         chat_messages: [
@@ -225,7 +225,7 @@ describe('conversationToMarkdown', () => {
     expect(withoutTools).toContain('полное содержимое файла')
   })
 
-  it('при includeTools: true содержимое create_file печатается ровно один раз — блок инструмента даёт только якорь', () => {
+  test('при includeTools: true содержимое create_file печатается ровно один раз — блок инструмента даёт только якорь', () => {
     const conversation = normalizeConversation(
       makeConversation({
         chat_messages: [
@@ -243,7 +243,7 @@ describe('conversationToMarkdown', () => {
     expect(markdown).toContain('[`a.md`](#amd)')
   })
 
-  it('реконструкция с ошибкой показывает пояснение в разделе «Файлы» вместо содержимого', () => {
+  test('реконструкция с ошибкой показывает пояснение в разделе «Файлы» вместо содержимого', () => {
     const conversation = normalizeConversation(
       makeConversation({
         chat_messages: [

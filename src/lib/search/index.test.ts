@@ -4,7 +4,7 @@ import { normalizeConversation, normalizeProject } from '@/lib/archive/normalize
 import { buildDocIndex, buildSearchIndex, runProjectSearch, runSearch } from './index'
 
 describe('buildSearchIndex / runSearch', () => {
-  it('индексирует только text-блоки — thinking и tool не попадают в индекс', () => {
+  test('индексирует только text-блоки — thinking и tool не попадают в индекс', () => {
     const conversation = normalizeConversation(
       makeConversation({
         chat_messages: [
@@ -28,14 +28,14 @@ describe('buildSearchIndex / runSearch', () => {
     expect(runSearch(index, 'дневник сновидений')).toEqual([{ conversationUuid: conversation.uuid, matchCount: 1 }])
   })
 
-  it('пустой запрос не возвращает результатов', () => {
+  test('пустой запрос не возвращает результатов', () => {
     const conversation = normalizeConversation(makeConversation({ chat_messages: [makeMessage({ content: [textBlock('текст')] })] }))
     expect(runSearch(buildSearchIndex([conversation]), '')).toEqual([])
   })
 })
 
 describe('buildDocIndex / runProjectSearch', () => {
-  it('находит проект по содержимому документа, счётчик — число совпавших документов', () => {
+  test('находит проект по содержимому документа, счётчик — число совпавших документов', () => {
     const project = normalizeProject(
       makeProject({
         uuid: 'p1',
@@ -51,13 +51,13 @@ describe('buildDocIndex / runProjectSearch', () => {
     expect(results).toEqual([{ projectUuid: 'p1', matchCount: 2 }])
   })
 
-  it('находит проект по имени или описанию даже без совпавших документов', () => {
+  test('находит проект по имени или описанию даже без совпавших документов', () => {
     const project = normalizeProject(makeProject({ uuid: 'p1', name: 'Дневник снов', docs: [] }))
     const results = runProjectSearch([project], buildDocIndex([project]), 'дневник снов')
     expect(results).toEqual([{ projectUuid: 'p1', matchCount: 0 }])
   })
 
-  it('пустой запрос не возвращает результатов', () => {
+  test('пустой запрос не возвращает результатов', () => {
     const project = normalizeProject(makeProject({ uuid: 'p1' }))
     expect(runProjectSearch([project], buildDocIndex([project]), '')).toEqual([])
   })

@@ -23,7 +23,7 @@ function conversationWithSearchHits(uuid: string, fragments: string[]) {
 }
 
 describe('linkProjectsToConversations', () => {
-  it('находит проект по совпадению путей документов в project_knowledge_search', () => {
+  test('находит проект по совпадению путей документов в project_knowledge_search', () => {
     const project = normalizeProject(
       makeProject({ uuid: 'p1', docs: [{ uuid: 'd1', filename: 'claude/skeleton.md', content: '...', created_at: '' }] }),
     )
@@ -34,14 +34,14 @@ describe('linkProjectsToConversations', () => {
     expect(links).toEqual([{ conversationUuid: 'c1', projectUuid: 'p1', matchCount: 1 }])
   })
 
-  it('не создаёт связь, если совпадений нет', () => {
+  test('не создаёт связь, если совпадений нет', () => {
     const project = normalizeProject(makeProject({ uuid: 'p1', docs: [{ uuid: 'd1', filename: 'a.md', content: '', created_at: '' }] }))
     const conversation = conversationWithSearchHits('c1', ['b.md\nтекст'])
 
     expect(linkProjectsToConversations([conversation], [project])).toEqual([])
   })
 
-  it('не гадает при ничьей между двумя проектами', () => {
+  test('не гадает при ничьей между двумя проектами', () => {
     const p1 = normalizeProject(makeProject({ uuid: 'p1', docs: [{ uuid: 'd1', filename: 'a.md', content: '', created_at: '' }] }))
     const p2 = normalizeProject(makeProject({ uuid: 'p2', docs: [{ uuid: 'd2', filename: 'b.md', content: '', created_at: '' }] }))
     const conversation = conversationWithSearchHits('c1', ['a.md\nтекст', 'b.md\nтекст'])
@@ -49,7 +49,7 @@ describe('linkProjectsToConversations', () => {
     expect(linkProjectsToConversations([conversation], [p1, p2])).toEqual([])
   })
 
-  it('игнорирует совпадение, если один и тот же filename встречается в нескольких проектах', () => {
+  test('игнорирует совпадение, если один и тот же filename встречается в нескольких проектах', () => {
     const p1 = normalizeProject(makeProject({ uuid: 'p1', docs: [{ uuid: 'd1', filename: 'shared.md', content: '', created_at: '' }] }))
     const p2 = normalizeProject(makeProject({ uuid: 'p2', docs: [{ uuid: 'd2', filename: 'shared.md', content: '', created_at: '' }] }))
     const conversation = conversationWithSearchHits('c1', ['shared.md\nтекст'])

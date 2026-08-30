@@ -4,7 +4,7 @@ import { collectConversationFiles, createFieldDetector, normalizeConversation, n
 import type { RawContentBlock } from './raw-types'
 
 describe('normalizeConversation', () => {
-  it('игнорирует мусорное плоское поле text и берёт контент только из content[]', () => {
+  test('игнорирует мусорное плоское поле text и берёт контент только из content[]', () => {
     const conversation = makeConversation({
       chat_messages: [
         makeMessage({
@@ -22,7 +22,7 @@ describe('normalizeConversation', () => {
     expect(block).toMatchObject({ text: 'Настоящий ответ' })
   })
 
-  it('для thinking берёт summaries, а не пустое поле thinking', () => {
+  test('для thinking берёт summaries, а не пустое поле thinking', () => {
     const conversation = makeConversation({
       chat_messages: [
         makeMessage({
@@ -44,7 +44,7 @@ describe('normalizeConversation', () => {
     expect(block).toMatchObject({ kind: 'thinking', summaries: ['Кратко о ходе рассуждений'], text: '' })
   })
 
-  it('схлопывает tool_use и tool_result в один блок tool', () => {
+  test('схлопывает tool_use и tool_result в один блок tool', () => {
     const conversation = makeConversation({
       chat_messages: [
         makeMessage({
@@ -90,7 +90,7 @@ describe('normalizeConversation', () => {
     }
   })
 
-  it('неизвестный тип блока не роняет нормализацию, а даёт unknown', () => {
+  test('неизвестный тип блока не роняет нормализацию, а даёт unknown', () => {
     const conversation = makeConversation({
       chat_messages: [
         makeMessage({
@@ -103,7 +103,7 @@ describe('normalizeConversation', () => {
     expect(result.messages[0].blocks[0]).toMatchObject({ kind: 'unknown', blockType: 'from_the_future' })
   })
 
-  it('помечает пустые сообщения и пустые беседы, не выбрасывая ошибку', () => {
+  test('помечает пустые сообщения и пустые беседы, не выбрасывая ошибку', () => {
     const emptyMessageConv = makeConversation({ chat_messages: [makeMessage({ text: '', content: [] })] })
     const result = normalizeConversation(emptyMessageConv)
     expect(result.messages[0].isEmpty).toBe(true)
@@ -114,7 +114,7 @@ describe('normalizeConversation', () => {
     expect(resultEmpty.name).toBe('')
   })
 
-  it('беседа, где каждое сообщение пусто по отдельности, тоже считается пустой целиком', () => {
+  test('беседа, где каждое сообщение пусто по отдельности, тоже считается пустой целиком', () => {
     const conversation = makeConversation({
       chat_messages: [
         makeMessage({ sender: 'human', text: '', content: [] }),
@@ -129,7 +129,7 @@ describe('normalizeConversation', () => {
     expect(result.isEmpty).toBe(true)
   })
 
-  it('беседа хотя бы с одним содержательным сообщением не считается пустой', () => {
+  test('беседа хотя бы с одним содержательным сообщением не считается пустой', () => {
     const conversation = makeConversation({
       chat_messages: [makeMessage({ text: '', content: [] }), makeMessage({ content: [textBlock('Привет')] })],
     })
@@ -138,7 +138,7 @@ describe('normalizeConversation', () => {
     expect(result.isEmpty).toBe(false)
   })
 
-  it('превращает фиктивный parent_message_uuid корня в null', () => {
+  test('превращает фиктивный parent_message_uuid корня в null', () => {
     const conversation = makeConversation({
       chat_messages: [makeMessage({ parent_message_uuid: '00000000-0000-4000-8000-000000000000' })],
     })
@@ -148,7 +148,7 @@ describe('normalizeConversation', () => {
 })
 
 describe('normalizeProject', () => {
-  it('отфильтровывает документы-заглушки без имени и содержимого', () => {
+  test('отфильтровывает документы-заглушки без имени и содержимого', () => {
     const project = normalizeProject(
       makeProject({
         docs: [
@@ -161,7 +161,7 @@ describe('normalizeProject', () => {
     expect(project.docs.map((d) => d.uuid)).toEqual(['d2'])
   })
 
-  it('проект без документов, описания и инструкций считается пустым', () => {
+  test('проект без документов, описания и инструкций считается пустым', () => {
     const project = normalizeProject(
       makeProject({
         docs: [{ uuid: 'd1', filename: '', content: '', created_at: '' }],
@@ -173,7 +173,7 @@ describe('normalizeProject', () => {
     expect(project.isEmpty).toBe(true)
   })
 
-  it('проект без документов, но с описанием или инструкциями не считается пустым', () => {
+  test('проект без документов, но с описанием или инструкциями не считается пустым', () => {
     const withDescription = normalizeProject(makeProject({ docs: [], description: 'Что-то полезное' }))
     expect(withDescription.isEmpty).toBe(false)
 
@@ -181,7 +181,7 @@ describe('normalizeProject', () => {
     expect(withPrompt.isEmpty).toBe(false)
   })
 
-  it('проект с реальным документом не считается пустым', () => {
+  test('проект с реальным документом не считается пустым', () => {
     const project = normalizeProject(
       makeProject({ docs: [{ uuid: 'd1', filename: 'a.md', content: 'текст', created_at: '' }] }),
     )
@@ -190,11 +190,11 @@ describe('normalizeProject', () => {
 })
 
 describe('parseToolCall', () => {
-  it('filePresent: filepaths[]', () => {
+  test('filePresent: filepaths[]', () => {
     expect(parseToolCall({ filepaths: ['a.md', 'b.md'] }, null)).toEqual({ kind: 'filePresent', paths: ['a.md', 'b.md'] })
   })
 
-  it('fileEdit: description + old_str + new_str + path', () => {
+  test('fileEdit: description + old_str + new_str + path', () => {
     expect(parseToolCall({ description: 'правка', old_str: 'было', new_str: 'стало', path: 'a.md' }, null)).toEqual({
       kind: 'fileEdit',
       path: 'a.md',
@@ -204,7 +204,7 @@ describe('parseToolCall', () => {
     })
   })
 
-  it('fileWrite: description + file_text + path, язык из display_content', () => {
+  test('fileWrite: description + file_text + path, язык из display_content', () => {
     const result = parseToolCall(
       { description: 'создание', file_text: 'содержимое', path: 'src/a.py' },
       { type: 'json_block', language: 'python' },
@@ -212,12 +212,12 @@ describe('parseToolCall', () => {
     expect(result).toEqual({ kind: 'fileWrite', path: 'src/a.py', text: 'содержимое', language: 'python', description: 'создание' })
   })
 
-  it('fileWrite: язык по расширению пути, если display_content нет', () => {
+  test('fileWrite: язык по расширению пути, если display_content нет', () => {
     const result = parseToolCall({ description: '', file_text: 'x', path: 'a.ts' }, null)
     expect(result).toMatchObject({ kind: 'fileWrite', language: 'typescript' })
   })
 
-  it('command: command + description', () => {
+  test('command: command + description', () => {
     expect(parseToolCall({ command: 'ls -la', description: 'листинг' }, null)).toEqual({
       kind: 'command',
       command: 'ls -la',
@@ -226,15 +226,15 @@ describe('parseToolCall', () => {
     })
   })
 
-  it('fetch: url', () => {
+  test('fetch: url', () => {
     expect(parseToolCall({ url: 'https://example.com' }, null)).toEqual({ kind: 'fetch', url: 'https://example.com' })
   })
 
-  it('query: query [,max_text_results]', () => {
+  test('query: query [,max_text_results]', () => {
     expect(parseToolCall({ query: 'тест', max_text_results: 5 }, null)).toEqual({ kind: 'query', query: 'тест', maxResults: 5 })
   })
 
-  it('fileRead: description + path [,view_range]', () => {
+  test('fileRead: description + path [,view_range]', () => {
     expect(parseToolCall({ description: 'чтение', path: 'a.md', view_range: [1, 10] }, null)).toEqual({
       kind: 'fileRead',
       path: 'a.md',
@@ -243,13 +243,13 @@ describe('parseToolCall', () => {
     })
   })
 
-  it('raw: незнакомая форма input', () => {
+  test('raw: незнакомая форма input', () => {
     expect(parseToolCall({ foo: 'bar' }, null)).toEqual({ kind: 'raw', input: { foo: 'bar' } })
   })
 })
 
 describe('parseToolResult', () => {
-  it('command: единственный текстовый фрагмент — валидный JSON {returncode, stdout, stderr}', () => {
+  test('command: единственный текстовый фрагмент — валидный JSON {returncode, stdout, stderr}', () => {
     const rawText = JSON.stringify({ returncode: 0, stdout: 'ok', stderr: '' })
     expect(parseToolResult([{ type: 'text', text: rawText }], null)).toEqual({
       kind: 'command',
@@ -260,7 +260,7 @@ describe('parseToolResult', () => {
     })
   })
 
-  it('command: невалидный JSON («invalid UTF-8») даёт фолбэк на text, а не падает', () => {
+  test('command: невалидный JSON («invalid UTF-8») даёт фолбэк на text, а не падает', () => {
     const rawText = 'Command output contains invalid UTF-8 data'
     expect(parseToolResult([{ type: 'text', text: rawText }], null)).toEqual({
       kind: 'text',
@@ -269,7 +269,7 @@ describe('parseToolResult', () => {
     })
   })
 
-  it('files: элементы local_resource', () => {
+  test('files: элементы local_resource', () => {
     const result = parseToolResult(
       [{ type: 'local_resource', path: 'src/a.md', name: 'a.md', mime_type: 'text/markdown', uuid: 'file-1' }],
       null,
@@ -280,7 +280,7 @@ describe('parseToolResult', () => {
     })
   })
 
-  it('sources: элементы knowledge с полным набором метаданных', () => {
+  test('sources: элементы knowledge с полным набором метаданных', () => {
     const result = parseToolResult(
       [
         {
@@ -315,7 +315,7 @@ describe('parseToolResult', () => {
     })
   })
 
-  it('text: обычный текстовый результат без JSON-формы', () => {
+  test('text: обычный текстовый результат без JSON-формы', () => {
     expect(parseToolResult([{ type: 'text', text: 'просто текст' }], null)).toEqual({
       kind: 'text',
       text: 'просто текст',
@@ -323,13 +323,13 @@ describe('parseToolResult', () => {
     })
   })
 
-  it('none: пустой результат без content и без rich_link', () => {
+  test('none: пустой результат без content и без rich_link', () => {
     expect(parseToolResult(null, null)).toEqual({ kind: 'none' })
   })
 })
 
 describe('collectConversationFiles (через normalizeConversation)', () => {
-  it('воспроизводит файл, правившийся трижды', () => {
+  test('воспроизводит файл, правившийся трижды', () => {
     const conversation = makeConversation({
       chat_messages: [
         makeMessage({
@@ -357,7 +357,7 @@ describe('collectConversationFiles (через normalizeConversation)', () => {
     expect(result.files[0].revisions).toHaveLength(4)
   })
 
-  it('noCreate: правка без предшествующего create_file', () => {
+  test('noCreate: правка без предшествующего create_file', () => {
     const conversation = makeConversation({
       chat_messages: [
         makeMessage({
@@ -370,7 +370,7 @@ describe('collectConversationFiles (через normalizeConversation)', () => {
     expect(result.files[0]).toMatchObject({ content: null, reconstructionError: 'noCreate' })
   })
 
-  it('missingEdit: old_str не встречается в текущем содержимом', () => {
+  test('missingEdit: old_str не встречается в текущем содержимом', () => {
     const conversation = makeConversation({
       chat_messages: [
         makeMessage({
@@ -387,7 +387,7 @@ describe('collectConversationFiles (через normalizeConversation)', () => {
     expect(result.files[0]).toMatchObject({ content: null, reconstructionError: 'missingEdit' })
   })
 
-  it('ambiguousEdit: old_str встречается более одного раза', () => {
+  test('ambiguousEdit: old_str встречается более одного раза', () => {
     const conversation = makeConversation({
       chat_messages: [
         makeMessage({
@@ -404,7 +404,7 @@ describe('collectConversationFiles (через normalizeConversation)', () => {
     expect(result.files[0]).toMatchObject({ content: null, reconstructionError: 'ambiguousEdit' })
   })
 
-  it('present_files помечает файл как предъявленный и обогащает имя/mime из local_resource', () => {
+  test('present_files помечает файл как предъявленный и обогащает имя/mime из local_resource', () => {
     const conversation = makeConversation({
       chat_messages: [
         makeMessage({
@@ -426,13 +426,13 @@ describe('collectConversationFiles (через normalizeConversation)', () => {
     expect(result.files[0]).toMatchObject({ isPresented: true, name: 'a.md', mimeType: 'text/markdown' })
   })
 
-  it('collectConversationFiles напрямую: беседа без файловых операций даёт пустой список', () => {
+  test('collectConversationFiles напрямую: беседа без файловых операций даёт пустой список', () => {
     expect(collectConversationFiles([makeMessage({ content: [textBlock('привет')] })])).toEqual([])
   })
 })
 
 describe('createFieldDetector', () => {
-  it('незнакомое поле блока даёт агрегированное предупреждение с числом вхождений, нормализация не падает', () => {
+  test('незнакомое поле блока даёт агрегированное предупреждение с числом вхождений, нормализация не падает', () => {
     const detector = createFieldDetector()
     const conversation = makeConversation({
       chat_messages: [
@@ -451,7 +451,7 @@ describe('createFieldDetector', () => {
     })
   })
 
-  it('незнакомый тип блока агрегируется по числу вхождений', () => {
+  test('незнакомый тип блока агрегируется по числу вхождений', () => {
     const detector = createFieldDetector()
     const conversation = makeConversation({
       chat_messages: [
@@ -464,7 +464,7 @@ describe('createFieldDetector', () => {
     expect(detector.toWarnings()).toContainEqual({ code: 'unknownBlockType', params: { type: 'from_the_future', count: 2 } })
   })
 
-  it('известные, но намеренно неиспользуемые поля tool_use не дают предупреждений', () => {
+  test('известные, но намеренно неиспользуемые поля tool_use не дают предупреждений', () => {
     const detector = createFieldDetector()
     const conversation = makeConversation({
       chat_messages: [
