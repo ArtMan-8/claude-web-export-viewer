@@ -12,7 +12,7 @@ function MessageBlocks({ message, showTools }: { message: Message; showTools: bo
           case 'text':
             return <TextBlock key={i} text={block.text} citations={block.citations} />
           case 'thinking':
-            return <ThinkingBlock key={i} summaries={block.summaries} text={block.text} />
+            return <ThinkingBlock key={i} summaries={block.summaries} text={block.text} isTruncated={block.isTruncated} />
           case 'tool':
             return showTools ? <ToolBlock key={i} block={block} /> : null
           case 'unknown':

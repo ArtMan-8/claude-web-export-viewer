@@ -91,7 +91,8 @@
     "nextBranch": "Следующая ветка",
     "resultWithoutCall": "Результат без парного вызова инструмента",
     "callWithoutResult": "Вызов без результата",
-    "incompleteData": "данные архива неполны"
+    "incompleteData": "данные архива неполны",
+    "thinkingTruncated": "размышление оборвано"
   },
   "common": {
     "untitled": "Без названия",
@@ -99,7 +100,13 @@
     "source": "Источник",
     "error": "ошибка",
     "scrollTop": "Наверх страницы",
-    "unknownBlock": "Нераспознанный блок: {{type}}"
+    "unknownBlock": "Нераспознанный блок: {{type}}",
+    "showFull": "Показать полностью",
+    "truncatedChars": "Показаны первые {{shown}} из {{total}} символов",
+    "exitCode": "Код возврата: {{code}}",
+    "stderr": "Стандартный поток ошибок",
+    "sourceUnavailable": "Источник недоступен",
+    "publishedAt": "опубликовано {{date}}"
   },
   "tools": {
     "web_search": "Поиск в вебе",
@@ -108,7 +115,10 @@
     "bash_tool": "Терминал",
     "view": "Просмотр файла",
     "artifacts": "Артефакт",
-    "repl": "Код (REPL)"
+    "repl": "Код (REPL)",
+    "create_file": "Создание файла",
+    "present_files": "Предъявление файлов",
+    "str_replace": "Правка файла"
   },
   "errors": {
     "unzipFailed": "Не удалось распаковать {{file}}",

@@ -91,7 +91,8 @@
     "nextBranch": "Next branch",
     "resultWithoutCall": "Result without a matching tool call",
     "callWithoutResult": "Call without a result",
-    "incompleteData": "archive data is incomplete"
+    "incompleteData": "archive data is incomplete",
+    "thinkingTruncated": "thinking cut off"
   },
   "common": {
     "untitled": "Untitled",
@@ -99,7 +100,13 @@
     "source": "Source",
     "error": "error",
     "scrollTop": "Scroll to top",
-    "unknownBlock": "Unrecognized block: {{type}}"
+    "unknownBlock": "Unrecognized block: {{type}}",
+    "showFull": "Show in full",
+    "truncatedChars": "Showing the first {{shown}} of {{total}} characters",
+    "exitCode": "Exit code: {{code}}",
+    "stderr": "Standard error",
+    "sourceUnavailable": "Source unavailable",
+    "publishedAt": "published {{date}}"
   },
   "tools": {
     "web_search": "Web search",
@@ -108,7 +115,10 @@
     "bash_tool": "Terminal",
     "view": "View file",
     "artifacts": "Artifact",
-    "repl": "Code (REPL)"
+    "repl": "Code (REPL)",
+    "create_file": "Create file",
+    "present_files": "Present files",
+    "str_replace": "Edit file"
   },
   "errors": {
     "unzipFailed": "Failed to unzip {{file}}",

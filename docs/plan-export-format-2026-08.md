@@ -295,18 +295,18 @@ interface Archive {
 
 Файлы: `src/components/conversation/blocks/tool-block.tsx` (+ новые подкомпоненты), `src/components/common/markdown.tsx`, `src/i18n/locales/*.json`
 
-- [ ] 2.1 Каркас `ToolBlock`: подпись из `label ?? t('tools.<name>', name)`, иконка по `name`, затем по `iconName`, затем по `call.kind`, затем `Wrench`
-- [ ] 2.2 `CommandCall` + `CommandResult`: код команды с подсветкой по `language`; результат — `stdout`/`stderr` раздельно, код возврата бейджем, ненулевой — как ошибка
-- [ ] 2.3 `FileWriteCall`: путь заголовком, содержимое как код с подсветкой по `language`
-- [ ] 2.4 `FileEditCall`: два блока — удалено/добавлено, с цветовой разметкой (`old_str`/`new_str` короткие, максимум 802 символа, усечение не нужно)
-- [ ] 2.5 `FileReadCall`: путь и диапазон строк; результат — код (в архиве уже с номерами строк)
-- [ ] 2.6 `FilesResult` (`local_resource`): имя, путь, mime; ссылка-якорь на секцию «Файлы беседы» — **закрывает пустой блок `present_files`**
-- [ ] 2.7 `SourcesResult`: все заголовки со ссылками + `favicon`, домен (`siteName ?? domain`), дата публикации (`publishedAt`); пометка «источник недоступен» при `isMissing`
-- [ ] 2.8 Усечение тел: общий бюджет 2 000 символов на блок, кнопка «показать полностью» с указанием полного размера; заголовки источников не режутся
-- [ ] 2.9 `TextResult`: моноширинный, с тем же усечением
-- [ ] 2.10 Фолбэк `raw`: текущий вид (`JSON.stringify`) — для незнакомых форм
-- [ ] 2.11 i18n: `tools.create_file`, `tools.present_files`, `tools.str_replace`; ключи `common.showFull`, `common.truncatedChars`, `common.exitCode`, `common.stderr`, `common.sourceUnavailable`, `common.publishedAt` — в `ru.json` и `en.json`
-- [ ] 2.12 `ThinkingBlock`: пометка при `isTruncated`
+- [x] 2.1 Каркас `ToolBlock`: подпись из `label ?? t('tools.<name>', name)`, иконка по `name`, затем по `iconName`, затем по `call.kind`, затем `Wrench`
+- [x] 2.2 `CommandCall` + `CommandResult`: код команды с подсветкой по `language`; результат — `stdout`/`stderr` раздельно, код возврата бейджем, ненулевой — как ошибка
+- [x] 2.3 `FileWriteCall`: путь заголовком, содержимое как код с подсветкой по `language`
+- [x] 2.4 `FileEditCall`: два блока — удалено/добавлено, с цветовой разметкой (`old_str`/`new_str` короткие, максимум 802 символа, усечение не нужно)
+- [x] 2.5 `FileReadCall`: путь и диапазон строк; результат — код (в архиве уже с номерами строк)
+- [x] 2.6 `FilesResult` (`local_resource`): имя, путь, mime; ссылка-якорь на секцию «Файлы беседы» — **закрывает пустой блок `present_files`**
+- [x] 2.7 `SourcesResult`: все заголовки со ссылками + `favicon`, домен (`siteName ?? domain`), дата публикации (`publishedAt`); пометка «источник недоступен» при `isMissing`
+- [x] 2.8 Усечение тел: общий бюджет 2 000 символов на блок, кнопка «показать полностью» с указанием полного размера; заголовки источников не режутся
+- [x] 2.9 `TextResult`: моноширинный, с тем же усечением
+- [x] 2.10 Фолбэк `raw`: текущий вид (`JSON.stringify`) — для незнакомых форм
+- [x] 2.11 i18n: `tools.create_file`, `tools.present_files`, `tools.str_replace`; ключи `common.showFull`, `common.truncatedChars`, `common.exitCode`, `common.stderr`, `common.sourceUnavailable`, `common.publishedAt` — в `ru.json` и `en.json`
+- [x] 2.12 `ThinkingBlock`: пометка при `isTruncated`
 
 **Критерий приёмки:** ни один блок из выгрузки не рендерится пустым; `present_files` показывает файл; `bash_tool` показывает stdout читаемым текстом, а не JSON-строкой с `\n`.
 
@@ -409,7 +409,7 @@ interface Archive {
 ## 9. Todo
 
 **Слой 1 — модель и нормализация** ☑ 1.1 ☑ 1.2 ☑ 1.3 ☑ 1.4 ☑ 1.5 ☑ 1.6 ☑ 1.7 ☑ 1.8 ☑ 1.9 ☑ 1.10 ☑ 1.11 ☑ 1.12
-**Слой 2 — рендер инструментов** ☐ 2.1 ☐ 2.2 ☐ 2.3 ☐ 2.4 ☐ 2.5 ☐ 2.6 ☐ 2.7 ☐ 2.8 ☐ 2.9 ☐ 2.10 ☐ 2.11 ☐ 2.12
+**Слой 2 — рендер инструментов** ☑ 2.1 ☑ 2.2 ☑ 2.3 ☑ 2.4 ☑ 2.5 ☑ 2.6 ☑ 2.7 ☑ 2.8 ☑ 2.9 ☑ 2.10 ☑ 2.11 ☑ 2.12
 **Слой 3 — файлы беседы** ☐ 3.1 ☐ 3.2 ☐ 3.3 ☐ 3.4 ☐ 3.5 ☐ 3.6 ☐ 3.7
 **Слой 4 — поиск** ☐ 4.1 ☐ 4.2 ☐ 4.3 ☐ 4.4 ☐ 4.5 ☐ 4.6 ☐ 4.7 ☐ 4.8 ☐ 4.9 ☐ 4.10
 **Слой 5 — экспорт** ☐ 5.1 ☐ 5.2 ☐ 5.3 ☐ 5.4 ☐ 5.5 ☐ 5.6 ☐ 5.7
