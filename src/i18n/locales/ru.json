@@ -153,6 +153,9 @@
     "conversationsHeading": "Беседы",
     "projectsHeading": "Проекты",
     "projectSuffix": "проект «{{name}}»",
-    "docsCount": "документов: {{count}}"
+    "docsCount": "документов: {{count}}",
+    "filesHeading": "Файлы",
+    "fileMeta": "{{revisions}} правок · {{size}} символов",
+    "exitCode": "код возврата: {{code}}"
   }
 }

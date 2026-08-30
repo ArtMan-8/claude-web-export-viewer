@@ -1,5 +1,5 @@
 import i18next from 'i18next'
-import type { Block, Citation, Conversation, Project } from '@/lib/archive/model'
+import type { Block, Citation, Conversation, ConversationFile, Project, ToolCall, ToolResult } from '@/lib/archive/model'
 import { displayNameOf } from '@/lib/display-name'
 
 export interface MarkdownExportOptions {
@@ -19,33 +19,76 @@ function yamlString(value: string): string {
   return JSON.stringify(value) // валидный YAML flow-scalar с экранированием
 }
 
-function renderTool(block: Extract<Block, { kind: 'tool' }>): string {
+/** Приближение алгоритма GitHub для якорей заголовков — этого достаточно для ссылок внутри одного документа. */
+function slugifyHeading(text: string): string {
+  return text
+    .toLowerCase()
+    .trim()
+    .replace(/[^\p{L}\p{N}\s-]/gu, '')
+    .replace(/\s+/g, '-')
+}
+
+function fileLink(path: string, fileSlugs: Map<string, string>): string {
+  return `[\`${path}\`](#${fileSlugs.get(path) ?? slugifyHeading(path)})`
+}
+
+function renderCall(call: ToolCall, fileSlugs: Map<string, string>): string {
+  switch (call.kind) {
+    case 'filePresent':
+      return call.paths.map((path) => `- ${fileLink(path, fileSlugs)}`).join('\n')
+    case 'fileEdit':
+      return [`\`${call.path}\``, '', '```diff', `- ${call.oldText}`, `+ ${call.newText}`, '```'].join('\n')
+    case 'fileWrite':
+      // Q17: содержимое печатается только в разделе «Файлы» — здесь якорь, а не тело, иначе дубль
+      return `${fileLink(call.path, fileSlugs)}`
+    case 'command':
+      return '```' + (call.language ?? '') + '\n' + call.command + '\n```'
+    case 'fetch':
+      return call.url
+    case 'query':
+      return call.query
+    case 'fileRead':
+      return `\`${call.path}\`` + (call.range ? ` (${call.range[0]}–${call.range[1]})` : '')
+    case 'raw':
+      return '```json\n' + JSON.stringify(call.input, null, 2) + '\n```'
+    case 'none':
+      return ''
+  }
+}
+
+function renderResult(result: ToolResult, fileSlugs: Map<string, string>): string {
+  switch (result.kind) {
+    case 'command': {
+      const parts = [i18next.t('export.exitCode', { code: result.exitCode ?? '—' })]
+      if (result.stdout) parts.push('```\n' + result.stdout + '\n```')
+      if (result.stderr) parts.push('```\n' + result.stderr + '\n```')
+      return parts.join('\n\n')
+    }
+    case 'sources':
+      return result.sources
+        .map((s) => `- [${s.title || s.url || i18next.t('common.source')}](${s.url})${s.publishedAt ? ` — ${s.publishedAt}` : ''}`)
+        .join('\n')
+    case 'files':
+      return result.files.map((f) => `- ${fileLink(f.path, fileSlugs)}`).join('\n')
+    case 'text':
+      return result.text ? '```\n' + result.text + '\n```' : ''
+    case 'none':
+      return ''
+  }
+}
+
+function renderTool(block: Extract<Block, { kind: 'tool' }>, fileSlugs: Map<string, string>): string {
   const parts: string[] = []
   const label = block.label ?? i18next.t(`tools.${block.name}`, block.name)
   const summary = block.isError ? `⚠️ ${label} (${i18next.t('common.error')})` : label
 
   parts.push(`<details>\n<summary>${summary}</summary>\n`)
 
-  if (block.rawInput !== undefined) {
-    parts.push('\n```json\n' + JSON.stringify(block.rawInput, null, 2) + '\n```\n')
-  }
+  const callBody = renderCall(block.call, fileSlugs)
+  if (callBody) parts.push('\n' + callBody + '\n')
 
-  const result = block.result
-  if (result.kind === 'sources') {
-    parts.push(
-      '\n' +
-        result.sources
-          .map((s) => `- [${s.title || s.url || i18next.t('common.source')}](${s.url})${s.snippet ? ` — ${s.snippet}` : ''}`)
-          .join('\n') +
-        '\n',
-    )
-  } else if (result.kind === 'command') {
-    parts.push('\n```\n' + [result.stdout, result.stderr].filter(Boolean).join('\n') + '\n```\n')
-  } else if (result.kind === 'files') {
-    parts.push('\n' + result.files.map((f) => `- ${f.path}`).join('\n') + '\n')
-  } else if (result.kind === 'text' && result.text) {
-    parts.push('\n```\n' + result.text + '\n```\n')
-  }
+  const resultBody = renderResult(block.result, fileSlugs)
+  if (resultBody) parts.push('\n' + resultBody + '\n')
 
   parts.push('\n</details>')
   return parts.join('')
@@ -60,6 +103,23 @@ function renderUnknown(block: Extract<Block, { kind: 'unknown' }>): string {
   )
 }
 
+/** Раздел «Файлы» в конце документа — всегда, полное содержимое без усечения (§5.3 плана). */
+function renderFilesSection(files: ConversationFile[]): string[] {
+  if (files.length === 0) return []
+
+  const lines: string[] = ['---', '', `## ${i18next.t('export.filesHeading')}`, '']
+  for (const file of files) {
+    lines.push(`### ${file.path}`, '')
+    lines.push(i18next.t('export.fileMeta', { revisions: file.revisions.length, size: file.finalSize ?? 0 }), '')
+    if (file.content !== null) {
+      lines.push('```' + (file.language ?? ''), file.content, '```', '')
+    } else {
+      lines.push(i18next.t(`conversation.fileError.${file.reconstructionError}`), '')
+    }
+  }
+  return lines
+}
+
 /**
  * Рендерит беседу в Markdown с YAML-frontmatter. Цитаты выносятся в сноски в
  * конце документа, а не вклеиваются по индексам символов — offset-ы в
@@ -69,6 +129,7 @@ function renderUnknown(block: Extract<Block, { kind: 'unknown' }>): string {
 export function conversationToMarkdown(conversation: Conversation, options: MarkdownExportOptions): string {
   const footnotes: string[] = []
   const seenUrls = new Map<string, number>()
+  const fileSlugs = new Map(conversation.files.map((f) => [f.path, slugifyHeading(f.path)]))
 
   function footnoteRefs(citations: Citation[]): string {
     if (citations.length === 0) return ''
@@ -129,7 +190,7 @@ export function conversationToMarkdown(conversation: Conversation, options: Mark
         }
         case 'tool':
           if (options.includeTools) {
-            lines.push(renderTool(block))
+            lines.push(renderTool(block, fileSlugs))
             lines.push('')
           }
           break
@@ -149,6 +210,8 @@ export function conversationToMarkdown(conversation: Conversation, options: Mark
     footnotes.forEach((url, i) => lines.push(`[^${i + 1}]: ${url}`))
     lines.push('')
   }
+
+  lines.push(...renderFilesSection(conversation.files))
 
   return lines.join('\n')
 }

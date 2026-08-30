@@ -153,6 +153,9 @@
     "conversationsHeading": "Conversations",
     "projectsHeading": "Projects",
     "projectSuffix": "project \"{{name}}\"",
-    "docsCount": "documents: {{count}}"
+    "docsCount": "documents: {{count}}",
+    "filesHeading": "Files",
+    "fileMeta": "{{revisions}} revisions · {{size}} characters",
+    "exitCode": "exit code: {{code}}"
   }
 }
