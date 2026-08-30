@@ -1,8 +1,8 @@
 import { Monitor, Moon, Sun } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { Button } from '@/components/ui/button'
-import { useSettings } from '@/store/settings-store'
-import type { Theme } from '@/store/settings-store'
+import { Button } from '~/components/ui/button'
+import { useSettings } from '~/store/settings-store'
+import type { Theme } from '~/store/settings-store'
 
 const ORDER: Theme[] = ['system', 'light', 'dark']
 const ICONS: Record<Theme, typeof Sun> = { system: Monitor, light: Sun, dark: Moon }

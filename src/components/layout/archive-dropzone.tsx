@@ -1,9 +1,9 @@
 import { useCallback, useRef, useState, type DragEvent } from 'react'
 import { Archive as ArchiveIcon, Loader2, UploadCloud } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { Button } from '@/components/ui/button'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { useArchive } from '@/store/archive-store'
+import { Button } from '~/components/ui/button'
+import { Alert, AlertDescription, AlertTitle } from '~/components/ui/alert'
+import { useArchive } from '~/store/archive-store'
 
 /** Полноэкранный экран загрузки: показывается, пока архив не открыт. */
 export function ArchiveDropzone() {

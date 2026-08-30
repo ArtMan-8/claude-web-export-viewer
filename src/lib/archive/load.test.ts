@@ -1,6 +1,6 @@
 import { strToU8, zipSync } from 'fflate'
-import { describe, expect, it } from 'vitest'
-import { makeConversation, makeProject } from '@/test-fixtures/fixtures'
+import { describe, expect, test } from 'vitest'
+import { makeConversation, makeProject } from '~/test-fixtures/fixtures'
 import { loadRawArchive, type RawFileInput } from './load'
 
 function jsonFile(name: string, data: unknown): RawFileInput {

@@ -1,11 +1,11 @@
 import { useTranslation } from 'react-i18next'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import { Switch } from '@/components/ui/switch'
-import { Label } from '@/components/ui/label'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { useArchive } from '@/store/archive-store'
-import { useSettings } from '@/store/settings-store'
+import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card'
+import { Avatar, AvatarFallback } from '~/components/ui/avatar'
+import { Switch } from '~/components/ui/switch'
+import { Label } from '~/components/ui/label'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '~/components/ui/table'
+import { useArchive } from '~/store/archive-store'
+import { useSettings } from '~/store/settings-store'
 
 function maskEmail(email: string): string {
   const at = email.indexOf('@')

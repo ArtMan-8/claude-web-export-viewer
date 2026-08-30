@@ -1,6 +1,6 @@
-import { describe, expect, it } from 'vitest'
-import { makeConversation, makeMessage, makeProject, textBlock, toolResultBlock, toolUseBlock } from '@/test-fixtures/fixtures'
-import { normalizeConversation, normalizeProject } from '@/lib/archive/normalize'
+import { describe, expect, test } from 'vitest'
+import { makeConversation, makeMessage, makeProject, textBlock, toolResultBlock, toolUseBlock } from '~/test-fixtures/fixtures'
+import { normalizeConversation, normalizeProject } from '~/lib/archive/normalize'
 import { buildDocIndex, buildSearchIndex, runProjectSearch, runSearch } from './index'
 
 describe('buildSearchIndex / runSearch', () => {

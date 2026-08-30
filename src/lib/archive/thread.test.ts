@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, test } from 'vitest'
 import { buildThread, resolveDisplayPath } from './thread'
 import type { Message } from './model'
 

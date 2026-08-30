@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest'
-import { makeConversation, makeMessage, makeProject, textBlock, toolResultBlock, toolUseBlock } from '@/test-fixtures/fixtures'
+import { describe, expect, test } from 'vitest'
+import { makeConversation, makeMessage, makeProject, textBlock, toolResultBlock, toolUseBlock } from '~/test-fixtures/fixtures'
 import { collectConversationFiles, createFieldDetector, normalizeConversation, normalizeProject, parseToolCall, parseToolResult } from './normalize'
 import type { RawContentBlock } from './raw-types'
 

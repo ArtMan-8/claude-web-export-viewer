@@ -1,6 +1,6 @@
 import i18next from 'i18next'
-import type { Conversation, Project } from '@/lib/archive/model'
-import { displayNameOf } from '@/lib/display-name'
+import type { Conversation, Project } from '~/lib/archive/model'
+import { displayNameOf } from '~/lib/display-name'
 
 export interface JsonExportOptions {
   project?: Project | null

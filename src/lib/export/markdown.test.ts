@@ -1,8 +1,8 @@
-import { beforeAll, describe, expect, it } from 'vitest'
+import { beforeAll, describe, expect, test } from 'vitest'
 import i18next from 'i18next'
-import '@/i18n/config'
-import { normalizeConversation } from '@/lib/archive/normalize'
-import { makeConversation, makeMessage, textBlock, toolResultBlock, toolUseBlock } from '@/test-fixtures/fixtures'
+import '~/i18n/config'
+import { normalizeConversation } from '~/lib/archive/normalize'
+import { makeConversation, makeMessage, textBlock, toolResultBlock, toolUseBlock } from '~/test-fixtures/fixtures'
 import { conversationToMarkdown } from './markdown'
 
 describe('conversationToMarkdown', () => {

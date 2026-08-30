@@ -1,8 +1,8 @@
 import { useTranslation } from 'react-i18next'
-import { Badge } from '@/components/ui/badge'
-import { TruncatedCode } from '@/components/common/truncated-code'
-import { conversationFileAnchorId } from '@/lib/archive/file-anchor'
-import type { ToolResult } from '@/lib/archive/model'
+import { Badge } from '~/components/ui/badge'
+import { TruncatedCode } from '~/components/common/truncated-code'
+import { conversationFileAnchorId } from '~/lib/archive/file-anchor'
+import type { ToolResult } from '~/lib/archive/model'
 
 function hostnameOf(url: string): string {
   try {

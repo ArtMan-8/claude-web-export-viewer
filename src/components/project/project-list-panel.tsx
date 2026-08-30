@@ -2,12 +2,12 @@ import { useMemo, useState } from 'react'
 import { Link, useParams } from '@tanstack/react-router'
 import { FileText, Search } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { Input } from '@/components/ui/input'
-import { Badge } from '@/components/ui/badge'
-import { runProjectSearch } from '@/lib/search'
-import { displayNameOf } from '@/lib/display-name'
-import { useArchive } from '@/store/archive-store'
-import { useDebouncedValue } from '@/hooks/use-debounced-value'
+import { Input } from '~/components/ui/input'
+import { Badge } from '~/components/ui/badge'
+import { runProjectSearch } from '~/lib/search'
+import { displayNameOf } from '~/lib/display-name'
+import { useArchive } from '~/store/archive-store'
+import { useDebouncedValue } from '~/hooks/use-debounced-value'
 
 export function ProjectListPanel() {
   const { t } = useTranslation()

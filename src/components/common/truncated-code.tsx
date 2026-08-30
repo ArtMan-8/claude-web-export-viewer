@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Markdown } from '@/components/common/markdown'
+import { Markdown } from '~/components/common/markdown'
 
 /** Бюджет усечения тел (Q2/Q10 плана) — общий для тел инструментов и файлов беседы. */
 export const TRUNCATE_BUDGET = 2000

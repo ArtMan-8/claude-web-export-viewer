@@ -1,5 +1,5 @@
 import { Outlet, createFileRoute } from '@tanstack/react-router'
-import { ProjectListPanel } from '@/components/project/project-list-panel'
+import { ProjectListPanel } from '~/components/project/project-list-panel'
 
 export const Route = createFileRoute('/projects')({
   component: ProjectsLayout,

@@ -1,6 +1,6 @@
 import { Link2 } from 'lucide-react'
-import { Markdown } from '@/components/common/markdown'
-import type { Citation } from '@/lib/archive/model'
+import { Markdown } from '~/components/common/markdown'
+import type { Citation } from '~/lib/archive/model'
 
 function hostnameOf(url: string): string {
   try {

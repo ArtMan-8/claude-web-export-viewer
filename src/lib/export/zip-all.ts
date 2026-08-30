@@ -1,7 +1,7 @@
 import { strToU8, zipSync } from 'fflate'
 import i18next from 'i18next'
-import type { Archive, Project } from '@/lib/archive/model'
-import { displayNameOf } from '@/lib/display-name'
+import type { Archive, Project } from '~/lib/archive/model'
+import { displayNameOf } from '~/lib/display-name'
 import { conversationToMarkdown } from './markdown'
 
 function slugify(input: string): string {

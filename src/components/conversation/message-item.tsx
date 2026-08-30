@@ -1,4 +1,4 @@
-import type { Message } from '@/lib/archive/model'
+import type { Message } from '~/lib/archive/model'
 import { TextBlock } from './blocks/text-block'
 import { ThinkingBlock } from './blocks/thinking-block'
 import { ToolBlock } from './blocks/tool-block'

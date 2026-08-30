@@ -1,7 +1,7 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, test } from 'vitest'
 import { linkProjectsToConversations } from './link-projects'
 import { normalizeConversation, normalizeProject } from './normalize'
-import { makeConversation, makeMessage, makeProject, toolResultBlock, toolUseBlock } from '@/test-fixtures/fixtures'
+import { makeConversation, makeMessage, makeProject, toolResultBlock, toolUseBlock } from '~/test-fixtures/fixtures'
 
 function conversationWithSearchHits(uuid: string, fragments: string[]) {
   return normalizeConversation(

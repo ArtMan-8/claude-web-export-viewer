@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import { AlertCircle, ChevronRight, Eye, FileCode, FileEdit, Files, FolderSearch, Globe, Search, Terminal, Wrench } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
-import { Badge } from '@/components/ui/badge'
-import type { Block, ToolCall } from '@/lib/archive/model'
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '~/components/ui/collapsible'
+import { Badge } from '~/components/ui/badge'
+import type { Block, ToolCall } from '~/lib/archive/model'
 import { ToolCallView } from './tool-call'
 import { ToolResultView } from './tool-result'
 

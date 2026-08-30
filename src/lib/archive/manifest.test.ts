@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, test } from 'vitest'
 import { parseManifest } from './manifest'
 
 describe('parseManifest', () => {

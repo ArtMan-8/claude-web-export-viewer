@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { ChevronRight, HelpCircle } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '~/components/ui/collapsible'
 
 /** Формат экспорта нестабилен — новый тип блока показываем как есть, а не роняем интерфейс. */
 export function UnknownBlock({ blockType, raw }: { blockType: string; raw: unknown }) {

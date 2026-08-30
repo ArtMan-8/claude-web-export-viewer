@@ -1,6 +1,6 @@
 import i18next from 'i18next'
-import type { Block, Citation, Conversation, ConversationFile, Project, ToolCall, ToolResult } from '@/lib/archive/model'
-import { displayNameOf } from '@/lib/display-name'
+import type { Block, Citation, Conversation, ConversationFile, Project, ToolCall, ToolResult } from '~/lib/archive/model'
+import { displayNameOf } from '~/lib/display-name'
 
 export interface MarkdownExportOptions {
   /** Показывать блоки инструментов (tool_use/tool_result) — по умолчанию скрыты, это ~90% объёма архива */

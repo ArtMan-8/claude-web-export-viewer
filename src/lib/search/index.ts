@@ -1,4 +1,4 @@
-import type { Conversation, Project } from '@/lib/archive/model'
+import type { Conversation, Project } from '~/lib/archive/model'
 import { matchesQuery, normalizeQuery } from './query'
 
 export interface SearchEntry {

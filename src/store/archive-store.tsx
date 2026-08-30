@@ -1,8 +1,8 @@
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react'
-import { buildArchive } from '@/lib/archive/build-archive'
-import { ArchiveLoadError, type RawFileInput } from '@/lib/archive/load'
-import type { Archive } from '@/lib/archive/model'
-import { buildDocIndex, buildSearchIndex, type DocSearchEntry, type SearchEntry } from '@/lib/search'
+import { buildArchive } from '~/lib/archive/build-archive'
+import { ArchiveLoadError, type RawFileInput } from '~/lib/archive/load'
+import type { Archive } from '~/lib/archive/model'
+import { buildDocIndex, buildSearchIndex, type DocSearchEntry, type SearchEntry } from '~/lib/search'
 
 export type LoadStatus = 'idle' | 'loading' | 'ready' | 'error'
 

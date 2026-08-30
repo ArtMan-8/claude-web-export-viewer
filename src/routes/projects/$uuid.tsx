@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
-import { ProjectView } from '@/components/project/project-view'
-import { useArchive } from '@/store/archive-store'
+import { ProjectView } from '~/components/project/project-view'
+import { useArchive } from '~/store/archive-store'
 
 export const Route = createFileRoute('/projects/$uuid')({
   component: ProjectRoute,

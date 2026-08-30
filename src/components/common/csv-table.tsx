@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import Papa from 'papaparse'
 import { useTranslation } from 'react-i18next'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '~/components/ui/table'
 
 export function CsvTable({ content }: { content: string }) {
   const { t } = useTranslation()

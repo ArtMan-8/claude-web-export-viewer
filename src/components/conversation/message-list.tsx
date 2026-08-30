@@ -1,8 +1,8 @@
 import { useRef } from 'react'
 import { useVirtualizer } from '@tanstack/react-virtual'
-import type { Message } from '@/lib/archive/model'
-import type { ThreadResult } from '@/lib/archive/thread'
-import { ScrollToTopButton } from '@/components/common/scroll-to-top-button'
+import type { Message } from '~/lib/archive/model'
+import type { ThreadResult } from '~/lib/archive/thread'
+import { ScrollToTopButton } from '~/components/common/scroll-to-top-button'
 import { MessageItem } from './message-item'
 import { BranchSwitcher } from './branch-switcher'
 

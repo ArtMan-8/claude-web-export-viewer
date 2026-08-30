@@ -1,5 +1,5 @@
 // Анонимные фикстуры для тестов ядра — не настоящие данные пользователя.
-import type { RawConversation, RawMessage, RawProject, RawTextBlock, RawToolResultBlock, RawToolUseBlock } from '@/lib/archive/raw-types'
+import type { RawConversation, RawMessage, RawProject, RawTextBlock, RawToolResultBlock, RawToolUseBlock } from '~/lib/archive/raw-types'
 
 const ROOT_PARENT = '00000000-0000-4000-8000-000000000000'
 

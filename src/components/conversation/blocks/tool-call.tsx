@@ -1,5 +1,5 @@
-import { TruncatedCode } from '@/components/common/truncated-code'
-import type { ToolCall } from '@/lib/archive/model'
+import { TruncatedCode } from '~/components/common/truncated-code'
+import type { ToolCall } from '~/lib/archive/model'
 
 /** Рендер вызова инструмента по форме `call` (см. §3.2, слой 2 плана) — не по имени инструмента. */
 export function ToolCallView({ call }: { call: ToolCall }) {

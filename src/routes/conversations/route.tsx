@@ -1,5 +1,5 @@
 import { Outlet, createFileRoute } from '@tanstack/react-router'
-import { ConversationListPanel } from '@/components/conversation/conversation-list-panel'
+import { ConversationListPanel } from '~/components/conversation/conversation-list-panel'
 
 export const Route = createFileRoute('/conversations')({
   component: ConversationsLayout,

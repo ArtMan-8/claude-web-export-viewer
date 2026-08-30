@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useArchive } from '@/store/archive-store'
+import { useArchive } from '~/store/archive-store'
 import { ArchiveDropzone } from './archive-dropzone'
 import { AppShell } from './app-shell'
 

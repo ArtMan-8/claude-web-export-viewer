@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
-import { ConversationView } from '@/components/conversation/conversation-view'
-import { useArchive } from '@/store/archive-store'
+import { ConversationView } from '~/components/conversation/conversation-view'
+import { useArchive } from '~/store/archive-store'
 
 export const Route = createFileRoute('/conversations/$uuid')({
   component: ConversationRoute,

@@ -1,10 +1,10 @@
 import { useEffect } from 'react'
 import { createRootRoute } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
-import { TooltipProvider } from '@/components/ui/tooltip'
-import { AppGate } from '@/components/layout/app-gate'
-import { ArchiveProvider } from '@/store/archive-store'
-import { SettingsProvider } from '@/store/settings-store'
+import { TooltipProvider } from '~/components/ui/tooltip'
+import { AppGate } from '~/components/layout/app-gate'
+import { ArchiveProvider } from '~/store/archive-store'
+import { SettingsProvider } from '~/store/settings-store'
 
 export const Route = createRootRoute({
   component: RootLayout,

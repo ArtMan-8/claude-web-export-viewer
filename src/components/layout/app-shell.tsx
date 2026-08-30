@@ -15,12 +15,12 @@ import {
   SidebarMenuItem,
   SidebarProvider,
   SidebarTrigger,
-} from '@/components/ui/sidebar'
-import { Separator } from '@/components/ui/separator'
-import { GithubIcon } from '@/components/common/github-icon'
+} from '~/components/ui/sidebar'
+import { Separator } from '~/components/ui/separator'
+import { GithubIcon } from '~/components/common/github-icon'
 import { ThemeToggle } from './theme-toggle'
 import { LanguageToggle } from './language-toggle'
-import { useArchive } from '@/store/archive-store'
+import { useArchive } from '~/store/archive-store'
 
 const AUTHOR_GITHUB_URL = 'https://github.com/ArtMan-8'
 
