@@ -142,7 +142,11 @@
     "archiveEmpty": "No conversations, projects, or account metadata found in the uploaded files. Make sure you selected claude.ai export files.",
     "noThreadRoot": "Couldn't determine the start of the conversation — messages are shown in export file order.",
     "unreachableMessages": "Found {{count}} unreachable message(s) — possibly a cycle or a broken parent_message_uuid reference. Showing export file order.",
-    "unknown": "Unknown error: {{message}}"
+    "unknown": "Unknown error: {{message}}",
+    "unknownBlockType": "Unknown block type \"{{type}}\" ({{count}})",
+    "unknownResultItem": "Unknown result item type \"{{type}}\" ({{count}})",
+    "unknownKeys": "Unknown field {{context}}.{{key}} ({{count}})",
+    "unverifiedAttachments": "Non-empty attachments/files on {{count}} message(s) — shape not verified"
   },
   "export": {
     "speakerHuman": "You",

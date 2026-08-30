@@ -16,6 +16,7 @@ import type {
   ConversationFileRevision,
   FileReconstructionError,
   KnowledgeSource,
+  LoadWarning,
   LoginEvent,
   Message,
   Project,
@@ -268,12 +269,102 @@ export function parseToolResult(content: RawToolResultBlock['content'], displayC
 }
 
 /**
+ * Белые списки ключей по фактическим данным выгрузки (см. §2.1 плана) —
+ * ключи вне списка сигналят, что в новой выгрузке появилось поле, которого
+ * читалка не знает. `approval_*`, `context`, `is_mcp_app`, `mcp_server_url`,
+ * `tool_identifier`, `flags`, `hidden_in_chat` присутствуют в данных (везде
+ * `null`), но осознанно не тянутся в модель — не выдумываем предупреждение на
+ * известную и намеренно неиспользуемую форму.
+ */
+const TEXT_BLOCK_KEYS = new Set(['type', 'text', 'citations', 'citations_grouping_mode', 'flags', 'start_timestamp', 'stop_timestamp'])
+const THINKING_BLOCK_KEYS = new Set([
+  'type', 'thinking', 'summaries', 'thinking_hidden', 'hidden', 'truncated', 'cut_off', 'signature',
+  'alternative_display_type', 'flags', 'start_timestamp', 'stop_timestamp',
+])
+const TOOL_USE_KEYS = new Set([
+  'type', 'id', 'name', 'input', 'message', 'integration_name', 'integration_icon_url', 'icon_name', 'tool_origin',
+  'display_content', 'start_timestamp', 'stop_timestamp',
+  'context', 'is_mcp_app', 'mcp_server_url', 'tool_identifier', 'flags', 'hidden_in_chat',
+])
+// tool_result зеркалит те же поля происхождения инструмента, что и tool_use (message/integration_*/icon_name/
+// tool_origin/mcp_server_url/hidden_in_chat/flags) плюс structured_content — подтверждено на реальной выгрузке.
+const TOOL_RESULT_KEYS = new Set([
+  'type', 'tool_use_id', 'name', 'content', 'is_error', 'display_content', 'meta', 'start_timestamp', 'stop_timestamp',
+  'message', 'integration_name', 'integration_icon_url', 'icon_name', 'tool_origin', 'mcp_server_url',
+  'hidden_in_chat', 'flags', 'structured_content',
+])
+const KNOWN_RESULT_ITEM_TYPES = new Set(['text', 'knowledge', 'local_resource'])
+const KNOWN_DISPLAY_CONTENT_TYPES = new Set(['text', 'json_block', 'table', 'rich_link', 'rich_content'])
+
+/** Собирает предупреждения о незнакомых данных по ходу нормализации, схлопывая повторы в счётчик (§6.3 плана). */
+export function createFieldDetector() {
+  const blockTypes = new Map<string, number>()
+  const resultItemTypes = new Map<string, number>()
+  const unknownKeys = new Map<string, { context: string; key: string; count: number }>()
+  let unverifiedAttachments = 0
+
+  return {
+    recordBlockType(type: string) {
+      blockTypes.set(type, (blockTypes.get(type) ?? 0) + 1)
+    },
+    recordResultItemType(type: string) {
+      resultItemTypes.set(type, (resultItemTypes.get(type) ?? 0) + 1)
+    },
+    recordUnknownKey(context: string, key: string) {
+      const id = `${context} ${key}`
+      const existing = unknownKeys.get(id)
+      unknownKeys.set(id, { context, key, count: (existing?.count ?? 0) + 1 })
+    },
+    recordUnverifiedAttachment() {
+      unverifiedAttachments += 1
+    },
+    toWarnings(): LoadWarning[] {
+      const warnings: LoadWarning[] = []
+      for (const [type, count] of blockTypes) warnings.push({ code: 'unknownBlockType', params: { type, count } })
+      for (const [type, count] of resultItemTypes) warnings.push({ code: 'unknownResultItem', params: { type, count } })
+      for (const { context, key, count } of unknownKeys.values()) {
+        warnings.push({ code: 'unknownKeys', params: { context, key, count } })
+      }
+      if (unverifiedAttachments > 0) warnings.push({ code: 'unverifiedAttachments', params: { count: unverifiedAttachments } })
+      return warnings
+    },
+  }
+}
+
+export type FieldDetector = ReturnType<typeof createFieldDetector>
+
+function detectUnknownKeys(raw: object, whitelist: Set<string>, context: string, detector: FieldDetector): void {
+  for (const key of Object.keys(raw)) {
+    if (whitelist.has(key)) continue
+    if (context === 'tool_use' && key.startsWith('approval_')) continue
+    detector.recordUnknownKey(context, key)
+  }
+}
+
+function detectUnknownDisplayContentType(displayContent: unknown, context: string, detector: FieldDetector): void {
+  if (!isObject(displayContent)) return
+  const type = displayContent.type
+  if (typeof type === 'string' && !KNOWN_DISPLAY_CONTENT_TYPES.has(type)) {
+    detector.recordUnknownKey(context, `display_content.type=${type}`)
+  }
+}
+
+function detectUnknownResultItems(content: RawToolResultBlock['content'], detector: FieldDetector): void {
+  if (!Array.isArray(content)) return
+  for (const item of content) {
+    if (isObject(item) && typeof item.type === 'string' && !KNOWN_RESULT_ITEM_TYPES.has(item.type)) {
+      detector.recordResultItemType(item.type)
+    }
+  }
+}
+
+/**
  * Схлопывает content[] сообщения в плоский список Block: text/thinking как
  * есть, tool_use+tool_result по tool_use_id — в один блок 'tool' (иначе
  * интерфейс распадается на пары карточек), неизвестные типы — в 'unknown'
  * вместо падения (формат экспорта нестабилен между версиями).
  */
-function normalizeBlocks(rawBlocks: RawContentBlock[]): Block[] {
+function normalizeBlocks(rawBlocks: RawContentBlock[], detector: FieldDetector): Block[] {
   const resultsByUseId = new Map<string, RawToolResultBlock>()
   for (const raw of rawBlocks) {
     if (raw.type === 'tool_result') {
@@ -287,6 +378,7 @@ function normalizeBlocks(rawBlocks: RawContentBlock[]): Block[] {
   for (const raw of rawBlocks) {
     switch (raw.type) {
       case 'text': {
+        detectUnknownKeys(raw, TEXT_BLOCK_KEYS, 'text', detector)
         const text = 'text' in raw && typeof raw.text === 'string' ? raw.text : ''
         blocks.push({
           kind: 'text',
@@ -297,6 +389,7 @@ function normalizeBlocks(rawBlocks: RawContentBlock[]): Block[] {
         break
       }
       case 'thinking': {
+        detectUnknownKeys(raw, THINKING_BLOCK_KEYS, 'thinking', detector)
         const summaries = Array.isArray(raw.summaries)
           ? raw.summaries.map((s) => s.summary).filter(Boolean)
           : []
@@ -314,8 +407,15 @@ function normalizeBlocks(rawBlocks: RawContentBlock[]): Block[] {
         // Формат экспорта нестабилен (см. RawUnknownBlock) — TS не может сузить union
         // по нелитеральному `type` соседней ветки, приведение безопасно после case-проверки.
         const use = raw as RawToolUseBlock
+        detectUnknownKeys(use, TOOL_USE_KEYS, 'tool_use', detector)
+        detectUnknownDisplayContentType(use.display_content, 'tool_use', detector)
         const result = resultsByUseId.get(use.id)
-        if (result) consumedResultIds.add(use.id)
+        if (result) {
+          consumedResultIds.add(use.id)
+          detectUnknownKeys(result, TOOL_RESULT_KEYS, 'tool_result', detector)
+          detectUnknownDisplayContentType(result.display_content, 'tool_result', detector)
+          detectUnknownResultItems(result.content, detector)
+        }
         blocks.push({
           kind: 'tool',
           toolUseId: use.id,
@@ -337,6 +437,9 @@ function normalizeBlocks(rawBlocks: RawContentBlock[]): Block[] {
         const result = raw as RawToolResultBlock
         if (consumedResultIds.has(result.tool_use_id)) break // уже показан вместе с tool_use
         // осиротевший результат без своего tool_use — редкость, но данные нестабильны
+        detectUnknownKeys(result, TOOL_RESULT_KEYS, 'tool_result', detector)
+        detectUnknownDisplayContentType(result.display_content, 'tool_result', detector)
+        detectUnknownResultItems(result.content, detector)
         blocks.push({
           kind: 'tool',
           toolUseId: result.tool_use_id,
@@ -355,6 +458,7 @@ function normalizeBlocks(rawBlocks: RawContentBlock[]): Block[] {
         break
       }
       default:
+        detector.recordBlockType(raw.type)
         blocks.push({ kind: 'unknown', blockType: raw.type, raw })
     }
   }
@@ -480,10 +584,13 @@ export function collectConversationFiles(rawMessages: RawMessage[]): Conversatio
 /** Фиктивный parent_message_uuid у самого первого сообщения беседы — не настоящая ссылка. */
 const ROOT_PARENT_SENTINEL = '00000000-0000-4000-8000-000000000000'
 
-export function normalizeConversation(raw: RawConversation): Conversation {
+export function normalizeConversation(raw: RawConversation, detector: FieldDetector = createFieldDetector()): Conversation {
   const rawMessages = raw.chat_messages ?? []
   const messages: Message[] = rawMessages.map((rawMessage) => {
-    const blocks = normalizeBlocks(rawMessage.content ?? [])
+    if ((rawMessage.attachments?.length ?? 0) > 0 || (rawMessage.files?.length ?? 0) > 0) {
+      detector.recordUnverifiedAttachment()
+    }
+    const blocks = normalizeBlocks(rawMessage.content ?? [], detector)
     return {
       uuid: rawMessage.uuid,
       parentUuid:

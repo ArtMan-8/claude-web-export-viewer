@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { makeConversation, makeMessage, makeProject, textBlock, toolResultBlock, toolUseBlock } from '@/test-fixtures/fixtures'
-import { collectConversationFiles, normalizeConversation, normalizeProject, parseToolCall, parseToolResult } from './normalize'
+import { collectConversationFiles, createFieldDetector, normalizeConversation, normalizeProject, parseToolCall, parseToolResult } from './normalize'
 import type { RawContentBlock } from './raw-types'
 
 describe('normalizeConversation', () => {
@@ -428,5 +428,53 @@ describe('collectConversationFiles (через normalizeConversation)', () => {
 
   it('collectConversationFiles напрямую: беседа без файловых операций даёт пустой список', () => {
     expect(collectConversationFiles([makeMessage({ content: [textBlock('привет')] })])).toEqual([])
+  })
+})
+
+describe('createFieldDetector', () => {
+  it('незнакомое поле блока даёт агрегированное предупреждение с числом вхождений, нормализация не падает', () => {
+    const detector = createFieldDetector()
+    const conversation = makeConversation({
+      chat_messages: [
+        makeMessage({ content: [{ ...textBlock('привет'), mystery_field: 'a' } as RawContentBlock] }),
+        makeMessage({ content: [{ ...textBlock('снова'), mystery_field: 'b' } as RawContentBlock] }),
+      ],
+    })
+
+    const result = normalizeConversation(conversation, detector)
+    expect(result.messages[0].blocks[0]).toMatchObject({ kind: 'text', text: 'привет' })
+    expect(result.messages[1].blocks[0]).toMatchObject({ kind: 'text', text: 'снова' })
+
+    expect(detector.toWarnings()).toContainEqual({
+      code: 'unknownKeys',
+      params: { context: 'text', key: 'mystery_field', count: 2 },
+    })
+  })
+
+  it('незнакомый тип блока агрегируется по числу вхождений', () => {
+    const detector = createFieldDetector()
+    const conversation = makeConversation({
+      chat_messages: [
+        makeMessage({ content: [{ type: 'from_the_future', payload: 1 } as unknown as RawContentBlock] }),
+        makeMessage({ content: [{ type: 'from_the_future', payload: 2 } as unknown as RawContentBlock] }),
+      ],
+    })
+
+    normalizeConversation(conversation, detector)
+    expect(detector.toWarnings()).toContainEqual({ code: 'unknownBlockType', params: { type: 'from_the_future', count: 2 } })
+  })
+
+  it('известные, но намеренно неиспользуемые поля tool_use не дают предупреждений', () => {
+    const detector = createFieldDetector()
+    const conversation = makeConversation({
+      chat_messages: [
+        makeMessage({
+          content: [{ ...toolUseBlock('t1', 'bash_tool', { command: 'ls' }), context: null, is_mcp_app: false } as RawContentBlock],
+        }),
+      ],
+    })
+
+    normalizeConversation(conversation, detector)
+    expect(detector.toWarnings()).toEqual([])
   })
 })

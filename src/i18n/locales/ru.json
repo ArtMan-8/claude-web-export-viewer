@@ -142,7 +142,11 @@
     "archiveEmpty": "В загруженных файлах не найдено ни бесед, ни проектов, ни метаданных аккаунта. Проверьте, что выбраны файлы экспорта claude.ai.",
     "noThreadRoot": "Не удалось определить начало беседы — сообщения показаны в порядке из файла экспорта.",
     "unreachableMessages": "Обнаружены недостижимые сообщения ({{count}} шт.) — возможен цикл или битая ссылка parent_message_uuid. Показан порядок из файла экспорта.",
-    "unknown": "Неизвестная ошибка: {{message}}"
+    "unknown": "Неизвестная ошибка: {{message}}",
+    "unknownBlockType": "Неизвестный тип блока «{{type}}» ({{count}})",
+    "unknownResultItem": "Неизвестный тип элемента результата «{{type}}» ({{count}})",
+    "unknownKeys": "Неизвестное поле {{context}}.{{key}} ({{count}})",
+    "unverifiedAttachments": "Непустые attachments/files у {{count}} сообщений — форма не проверена"
   },
   "export": {
     "speakerHuman": "Вы",
