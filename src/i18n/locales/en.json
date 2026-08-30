@@ -30,6 +30,7 @@
   },
   "dashboard": {
     "title": "Dashboard",
+    "exportedAt": "Exported {{date}}",
     "exportAll": "Export everything",
     "warningsTitle": "There are warnings from loading the archive ({{count}})",
     "andMore": "…and {{count}} more",
@@ -92,7 +93,20 @@
     "resultWithoutCall": "Result without a matching tool call",
     "callWithoutResult": "Call without a result",
     "incompleteData": "archive data is incomplete",
-    "thinkingTruncated": "thinking cut off"
+    "thinkingTruncated": "thinking cut off",
+    "filesHeading": "Conversation files ({{count}})",
+    "filesPresented": "Presented",
+    "filesIntermediate": "Intermediate",
+    "filePresented": "presented",
+    "fileRevisions": "{{count}} revisions",
+    "fileReconstructed": "assembled from the edit history",
+    "filePreview": "Show content",
+    "fileSize": "{{count}} characters",
+    "fileError": {
+      "noCreate": "edit without a source file — reconstruction is impossible",
+      "ambiguousEdit": "ambiguous edit — the source fragment occurs more than once",
+      "missingEdit": "edit doesn't apply — the source fragment wasn't found"
+    }
   },
   "common": {
     "untitled": "Untitled",

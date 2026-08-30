@@ -32,7 +32,12 @@ export function DashboardPage() {
   return (
     <div className="mx-auto flex max-w-4xl flex-col gap-6 p-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold">{t('dashboard.title')}</h1>
+        <div>
+          <h1 className="text-xl font-semibold">{t('dashboard.title')}</h1>
+          {archive.exportedAt && (
+            <p className="text-xs text-muted-foreground">{t('dashboard.exportedAt', { date: formatDate(archive.exportedAt) })}</p>
+          )}
+        </div>
         <Button onClick={handleExportAll}>
           <Download />
           {t('dashboard.exportAll')}

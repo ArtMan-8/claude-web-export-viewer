@@ -14,6 +14,7 @@ import { conversationToJson } from '@/lib/export/json'
 import { downloadText } from '@/lib/download'
 import { useArchive } from '@/store/archive-store'
 import { useSettings } from '@/store/settings-store'
+import { ConversationFiles } from './conversation-files'
 import { MessageList } from './message-list'
 
 function slugify(input: string): string {
@@ -94,6 +95,8 @@ export function ConversationView({ conversation }: { conversation: Conversation 
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+
+      <ConversationFiles files={conversation.files} />
 
       {thread.warning && (
         <Alert className="m-3 mb-0" variant="destructive">

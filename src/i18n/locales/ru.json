@@ -30,6 +30,7 @@
   },
   "dashboard": {
     "title": "Дашборд",
+    "exportedAt": "Экспорт от {{date}}",
     "exportAll": "Экспортировать всё",
     "warningsTitle": "Есть предупреждения при загрузке архива ({{count}})",
     "andMore": "…и ещё {{count}}",
@@ -92,7 +93,20 @@
     "resultWithoutCall": "Результат без парного вызова инструмента",
     "callWithoutResult": "Вызов без результата",
     "incompleteData": "данные архива неполны",
-    "thinkingTruncated": "размышление оборвано"
+    "thinkingTruncated": "размышление оборвано",
+    "filesHeading": "Файлы беседы ({{count}})",
+    "filesPresented": "Предъявленные",
+    "filesIntermediate": "Промежуточные",
+    "filePresented": "предъявлен",
+    "fileRevisions": "{{count}} правок",
+    "fileReconstructed": "собрано из истории правок",
+    "filePreview": "Показать содержимое",
+    "fileSize": "{{count}} символов",
+    "fileError": {
+      "noCreate": "правка без исходного файла — реконструкция невозможна",
+      "ambiguousEdit": "правка неоднозначна — исходный фрагмент встречается несколько раз",
+      "missingEdit": "правка не применяется — исходный фрагмент не найден"
+    }
   },
   "common": {
     "untitled": "Без названия",
