@@ -13,7 +13,8 @@ function ProjectRoute() {
   const { archive } = useArchive()
   const project = archive?.projects.find((p) => p.uuid === uuid)
 
-  if (!project) {
+  // Удалённый проект — скелет без содержимого, прямых ссылок на него в UI нет
+  if (!project || project.isDeleted) {
     return (
       <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
         {t('project.notFound')}

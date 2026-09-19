@@ -13,7 +13,8 @@ function ConversationRoute() {
   const { archive } = useArchive()
   const conversation = archive?.conversations.find((c) => c.uuid === uuid)
 
-  if (!conversation) {
+  // Удалённая беседа — скелет без содержимого, прямых ссылок на неё в UI нет
+  if (!conversation || conversation.isDeleted) {
     return (
       <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
         {t('conversation.notFound')}

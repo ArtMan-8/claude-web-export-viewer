@@ -17,7 +17,7 @@ export function ProjectListPanel() {
   const [query, setQuery] = useState('')
   const debouncedQuery = useDebouncedValue(query, 500)
 
-  const allProjects = useMemo(() => (archive?.projects ?? []).filter((p) => !p.isEmpty), [archive])
+  const allProjects = useMemo(() => (archive?.projects ?? []).filter((p) => !p.isEmpty && !p.isDeleted), [archive])
   const results = useMemo(() => runProjectSearch(allProjects, docIndex, debouncedQuery), [allProjects, docIndex, debouncedQuery])
   const matchByUuid = useMemo(() => new Map(results.map((r) => [r.projectUuid, r.matchCount])), [results])
 

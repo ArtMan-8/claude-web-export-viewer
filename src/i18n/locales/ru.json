@@ -45,7 +45,22 @@
     "dateRange": "Диапазон дат",
     "noData": "Нет данных",
     "tools": "Инструменты",
-    "toolsNotUsed": "Инструменты не использовались"
+    "toolsNotUsed": "Инструменты не использовались",
+    "deleted": "Удалённые",
+    "deletedConversations": "Бесед: {{count}} ({{messages}} сообщ.)",
+    "deletedProjects": "Проектов: {{count}} ({{docs}} документов)",
+    "deletedTable": {
+      "show": "Показать список",
+      "type": "Тип",
+      "uuid": "UUID",
+      "createdAt": "Создано",
+      "deletedAt": "Удалено",
+      "items": "Сообщений / документов",
+      "kind": {
+        "conversation": "Беседа",
+        "project": "Проект"
+      }
+    }
   },
   "account": {
     "title": "Аккаунт",
@@ -164,6 +179,7 @@
     "docsCount": "документов: {{count}}",
     "filesHeading": "Файлы",
     "fileMeta": "{{revisions}} правок · {{size}} символов",
-    "exitCode": "код возврата: {{code}}"
+    "exitCode": "код возврата: {{code}}",
+    "deletedHeading": "Удалённые"
   }
 }

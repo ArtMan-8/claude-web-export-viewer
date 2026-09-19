@@ -92,8 +92,12 @@ export function ArchiveProvider({ children }: { children: ReactNode }) {
     setError(null)
   }, [])
 
-  const searchIndex = useMemo(() => (archive ? buildSearchIndex(archive.conversations) : []), [archive])
-  const docIndex = useMemo(() => (archive ? buildDocIndex(archive.projects) : []), [archive])
+  // Удалённые записи — скелеты без содержимого, в индексы не идут (см. Q2 плана 2026-09)
+  const searchIndex = useMemo(
+    () => (archive ? buildSearchIndex(archive.conversations.filter((c) => !c.isDeleted)) : []),
+    [archive],
+  )
+  const docIndex = useMemo(() => (archive ? buildDocIndex(archive.projects.filter((p) => !p.isDeleted)) : []), [archive])
 
   const value = useMemo<ArchiveContextValue>(
     () => ({ archive, status, error, searchIndex, docIndex, loadFromFiles, tryLoadLocalArchive, reset }),

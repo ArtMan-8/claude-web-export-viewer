@@ -138,6 +138,39 @@ describe('normalizeConversation', () => {
     expect(result.isEmpty).toBe(false)
   })
 
+  test('беседа с сообщениями, у которых стёрты и content, и text — удалённая', () => {
+    const conversation = makeConversation({
+      name: '',
+      updated_at: '2026-09-18T16:57:00Z',
+      chat_messages: [
+        makeMessage({ sender: 'human', text: '', content: [], files: [{ file_uuid: 'f1', file_name: '' }] }),
+        makeMessage({ sender: 'assistant', text: '', content: [] }),
+      ],
+    })
+
+    const result = normalizeConversation(conversation)
+    expect(result.isDeleted).toBe(true)
+    expect(result.updatedAt).toBe('2026-09-18T16:57:00Z')
+  })
+
+  test('беседа с нулём сообщений — пустая, но не удалённая', () => {
+    const result = normalizeConversation(makeConversation({ chat_messages: [] }))
+    expect(result.isEmpty).toBe(true)
+    expect(result.isDeleted).toBe(false)
+  })
+
+  test('беседа хотя бы с одним непустым text или content — не удалённая', () => {
+    const withText = normalizeConversation(
+      makeConversation({ chat_messages: [makeMessage({ text: 'Привет', content: [] }), makeMessage({ text: '', content: [] })] }),
+    )
+    expect(withText.isDeleted).toBe(false)
+
+    const withContent = normalizeConversation(
+      makeConversation({ chat_messages: [makeMessage({ text: '', content: [textBlock('Привет')] })] }),
+    )
+    expect(withContent.isDeleted).toBe(false)
+  })
+
   test('превращает фиктивный parent_message_uuid корня в null', () => {
     const conversation = makeConversation({
       chat_messages: [makeMessage({ parent_message_uuid: '00000000-0000-4000-8000-000000000000' })],
@@ -186,6 +219,42 @@ describe('normalizeProject', () => {
       makeProject({ docs: [{ uuid: 'd1', filename: 'a.md', content: 'текст', created_at: '' }] }),
     )
     expect(project.isEmpty).toBe(false)
+    expect(project.isDeleted).toBe(false)
+    expect(project.rawDocCount).toBe(1)
+  })
+
+  test('проект, у которого все документы — заглушки, удалён; rawDocCount снимается до фильтра', () => {
+    const project = normalizeProject(
+      makeProject({
+        name: '',
+        docs: [
+          { uuid: 'd1', filename: '', content: '', created_at: '' },
+          { uuid: 'd2', filename: '', content: '', created_at: '' },
+          { uuid: 'd3', filename: '', content: '', created_at: '' },
+        ],
+      }),
+    )
+
+    expect(project.isDeleted).toBe(true)
+    expect(project.rawDocCount).toBe(3)
+    expect(project.docs).toHaveLength(0)
+  })
+
+  test('проект с нулём документов — не удалённый', () => {
+    expect(normalizeProject(makeProject({ docs: [] })).isDeleted).toBe(false)
+  })
+
+  test('проект, где заглушки перемешаны с реальными документами, — живой', () => {
+    const project = normalizeProject(
+      makeProject({
+        docs: [
+          { uuid: 'd1', filename: '', content: '', created_at: '' },
+          { uuid: 'd2', filename: 'a.md', content: 'текст', created_at: '' },
+        ],
+      }),
+    )
+    expect(project.isDeleted).toBe(false)
+    expect(project.rawDocCount).toBe(2)
   })
 })
 

@@ -45,7 +45,22 @@
     "dateRange": "Date range",
     "noData": "No data",
     "tools": "Tools",
-    "toolsNotUsed": "No tools were used"
+    "toolsNotUsed": "No tools were used",
+    "deleted": "Deleted",
+    "deletedConversations": "Conversations: {{count}} ({{messages}} msg.)",
+    "deletedProjects": "Projects: {{count}} ({{docs}} documents)",
+    "deletedTable": {
+      "show": "Show list",
+      "type": "Type",
+      "uuid": "UUID",
+      "createdAt": "Created",
+      "deletedAt": "Deleted",
+      "items": "Messages / documents",
+      "kind": {
+        "conversation": "Conversation",
+        "project": "Project"
+      }
+    }
   },
   "account": {
     "title": "Account",
@@ -164,6 +179,7 @@
     "docsCount": "documents: {{count}}",
     "filesHeading": "Files",
     "fileMeta": "{{revisions}} revisions · {{size}} characters",
-    "exitCode": "exit code: {{code}}"
+    "exitCode": "exit code: {{code}}",
+    "deletedHeading": "Deleted"
   }
 }

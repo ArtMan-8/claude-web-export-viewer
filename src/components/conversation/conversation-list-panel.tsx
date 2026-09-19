@@ -41,7 +41,7 @@ export function ConversationListPanel() {
 
   const rows = useMemo(() => {
     if (!archive) return []
-    const nonEmpty = archive.conversations.filter((c) => !c.isEmpty)
+    const nonEmpty = archive.conversations.filter((c) => !c.isEmpty && !c.isDeleted)
     const base = debouncedQuery.trim() ? nonEmpty.filter((c) => matchByUuid.has(c.uuid)) : nonEmpty
     return [...base].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
   }, [archive, debouncedQuery, matchByUuid])

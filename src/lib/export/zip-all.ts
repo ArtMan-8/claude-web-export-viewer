@@ -1,5 +1,6 @@
 import { strToU8, zipSync } from 'fflate'
 import i18next from 'i18next'
+import { collectDeletedRecords } from '~/lib/archive/deleted'
 import type { Archive, Project } from '~/lib/archive/model'
 import { displayNameOf } from '~/lib/display-name'
 import { conversationToMarkdown } from './markdown'
@@ -46,6 +47,7 @@ export function buildFullExportZip(archive: Archive, options: ZipAllOptions): Ui
   const indexLines: string[] = [`# ${i18next.t('export.archiveTitle')}`, '', `## ${i18next.t('export.conversationsHeading')}`, '']
 
   for (const conversation of archive.conversations) {
+    if (conversation.isDeleted) continue // скелет без содержимого — только в разделе «Удалённые»
     const projectUuid = projectUuidByConversation.get(conversation.uuid)
     const project = projectUuid ? (projectByUuid.get(projectUuid) ?? null) : null
     const conversationName = displayNameOf(conversation.name, untitled)
@@ -65,6 +67,7 @@ export function buildFullExportZip(archive: Archive, options: ZipAllOptions): Ui
   const usedProjectDirs = new Set<string>()
 
   for (const project of archive.projects) {
+    if (project.isDeleted) continue
     const projectName = displayNameOf(project.name, untitled)
     const dir = uniqueName(safeSegment(slugify(projectName)), usedProjectDirs)
     indexLines.push(`- ${projectName} (${i18next.t('export.docsCount', { count: project.docs.length })})`)
@@ -72,6 +75,29 @@ export function buildFullExportZip(archive: Archive, options: ZipAllOptions): Ui
     for (const doc of project.docs) {
       const segments = doc.filename ? doc.filename.split('/').map(safeSegment) : [`${doc.uuid}.md`]
       files[`projects/${dir}/${segments.join('/')}`] = strToU8(doc.content)
+    }
+  }
+
+  // Та же таблица, что на дашборде (Q18): удалённые записи не теряются молча
+  const deleted = collectDeletedRecords(archive)
+  if (deleted.length > 0) {
+    indexLines.push(
+      '',
+      `## ${i18next.t('export.deletedHeading')}`,
+      '',
+      `| ${[
+        i18next.t('dashboard.deletedTable.type'),
+        i18next.t('dashboard.deletedTable.uuid'),
+        i18next.t('dashboard.deletedTable.createdAt'),
+        i18next.t('dashboard.deletedTable.deletedAt'),
+        i18next.t('dashboard.deletedTable.items'),
+      ].join(' | ')} |`,
+      '|---|---|---|---|---|',
+    )
+    for (const record of deleted) {
+      indexLines.push(
+        `| ${i18next.t(`dashboard.deletedTable.kind.${record.kind}`)} | \`${record.uuid}\` | ${record.createdAt.slice(0, 10)} | ${record.deletedAt.slice(0, 10)} | ${record.itemCount} |`,
+      )
     }
   }
 

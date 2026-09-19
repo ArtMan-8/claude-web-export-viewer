@@ -10,6 +10,7 @@ import { buildFullExportZip } from '~/lib/export/zip-all'
 import { downloadBytes } from '~/lib/download'
 import { useArchive } from '~/store/archive-store'
 import { useSettings } from '~/store/settings-store'
+import { DeletedCard } from './deleted-card'
 
 function formatDate(iso: string): string {
   if (!iso) return '—'
@@ -109,6 +110,8 @@ export function DashboardPage() {
           </CardContent>
         </Card>
       </div>
+
+      <DeletedCard archive={archive} stats={stats} />
 
       <Card>
         <CardHeader>

@@ -4,6 +4,7 @@ import type {
   RawLoginEvent,
   RawMessage,
   RawProject,
+  RawProjectDoc,
   RawToolResultBlock,
   RawToolUseBlock,
   RawUser,
@@ -605,6 +606,13 @@ export function normalizeConversation(raw: RawConversation, detector: FieldDetec
     }
   })
 
+  // Удалённая беседа экспортируется скелетом: сообщения на месте, но у каждого
+  // стёрты и content, и text (см. §2.1 плана 2026-09). Вложения (attachments/files)
+  // в критерий намеренно не входят — у удалённых бесед они тоже встречаются.
+  const isDeleted =
+    rawMessages.length > 0 &&
+    rawMessages.every((m) => (m.content?.length ?? 0) === 0 && !(m.text ?? '').trim())
+
   return {
     uuid: raw.uuid,
     name: raw.name ?? '',
@@ -616,15 +624,21 @@ export function normalizeConversation(raw: RawConversation, detector: FieldDetec
     // Не только 0 сообщений, но и беседа, где каждое сообщение само по себе пусто —
     // такое встречается у сорвавшихся генераций (сбой без единого блока контента)
     isEmpty: messages.length === 0 || messages.every((m) => m.isEmpty),
+    isDeleted,
     files: collectConversationFiles(rawMessages),
     raw,
   }
 }
 
 export function normalizeProject(raw: RawProject): Project {
-  const docs: ProjectDoc[] = (raw.docs ?? [])
+  const rawDocs = raw.docs ?? []
+  const isStubDoc = (doc: RawProjectDoc) => !doc.filename?.trim() && !doc.content?.trim()
+  // Удалённый проект — документы на месте, но все стали заглушками (§2.1 плана 2026-09)
+  const isDeleted = rawDocs.length > 0 && rawDocs.every(isStubDoc)
+
+  const docs: ProjectDoc[] = rawDocs
     // Документы-заглушки без имени и содержимого — мусор стартовых проектов, не показываем
-    .filter((doc) => doc.filename?.trim() || doc.content?.trim())
+    .filter((doc) => !isStubDoc(doc))
     .map((doc) => ({
       uuid: doc.uuid,
       filename: doc.filename ?? '',
@@ -648,6 +662,8 @@ export function normalizeProject(raw: RawProject): Project {
     docs,
     // Пустой проект — это ровно "нечего показать": ни документов, ни описания, ни инструкций
     isEmpty: docs.length === 0 && !description.trim() && !promptTemplate.trim(),
+    isDeleted,
+    rawDocCount: rawDocs.length,
     raw,
   }
 }

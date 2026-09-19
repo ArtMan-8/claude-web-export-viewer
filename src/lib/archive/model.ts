@@ -116,6 +116,8 @@ export interface Conversation {
   accountUuid: string
   messages: Message[]
   isEmpty: boolean
+  /** Сообщения есть, но содержимое у всех стёрто — беседа удалена; updatedAt = момент удаления */
+  isDeleted: boolean
   files: ConversationFile[]
   /** Исходный объект из conversations.json — только для экспорта «сырой JSON» */
   raw: RawConversation
@@ -141,6 +143,10 @@ export interface Project {
   docs: ProjectDoc[]
   /** Нет ни документов, ни описания, ни инструкций — типично для служебных стартовых проектов */
   isEmpty: boolean
+  /** Документы есть, но у всех пусты имя и содержимое — проект удалён; updatedAt = момент удаления */
+  isDeleted: boolean
+  /** Число документов в архиве до фильтрации заглушек (у живого проекта совпадает с docs.length) */
+  rawDocCount: number
   /** Исходный объект из projects/<uuid>.json — только для экспорта «сырой JSON» */
   raw: RawProject
 }
