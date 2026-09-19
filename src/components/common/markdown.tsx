@@ -2,6 +2,8 @@ import { memo, type ComponentProps } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import rehypeHighlight from 'rehype-highlight'
+import { mermaidSourceFromPre } from '~/lib/mermaid-fence'
+import { MermaidDiagram } from './mermaid-diagram'
 
 // Таблицы и блоки кода не переносятся по словам и иначе раздвигают всю
 // страницу вширь (flex-контейнеры без overflow наследуют их минимальную
@@ -14,7 +16,12 @@ const components: ComponentProps<typeof ReactMarkdown>['components'] = {
       <table {...props} />
     </div>
   ),
-  pre: ({ node: _node, ...props }) => <pre className="overflow-x-auto" {...props} />,
+  // Фенс ```mermaid уходит в MermaidDiagram; обычный <pre> остаётся у него запасным видом
+  pre: ({ node, ...props }) => {
+    const source = mermaidSourceFromPre(node)
+    const pre = <pre className="overflow-x-auto" {...props} />
+    return source ? <MermaidDiagram source={source} fallback={pre} /> : pre
+  },
 }
 
 /**

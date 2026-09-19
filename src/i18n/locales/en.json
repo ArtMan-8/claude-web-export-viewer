@@ -147,6 +147,17 @@
     "file": "File",
     "fileNotExported": "not included in the export"
   },
+  "diagram": {
+    "title": "Diagram",
+    "expand": "Open full screen",
+    "zoomIn": "Zoom in (+)",
+    "zoomOut": "Zoom out (−)",
+    "fit": "Fit to window (0)",
+    "source": "Source",
+    "showSource": "Show diagram source",
+    "showDiagram": "Show diagram",
+    "failed": "Could not render the diagram — showing the source"
+  },
   "common": {
     "untitled": "Untitled",
     "noName": "Unnamed",
