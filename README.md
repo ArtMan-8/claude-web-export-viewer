@@ -12,7 +12,7 @@ A local, read-only viewer for the data export you get from [claude.ai](https://c
 - **Project browser** with project documents in a folder tree (Markdown and CSV rendered natively), a collapsible description, and conversations linked back via a heuristic — the export doesn't record which project a conversation belongs to, so links are recovered by matching `project_knowledge_search` results to document filenames.
 - **Artifact browser** with all versions of each artifact, rendered live in a sandboxed iframe.
 - **Mermaid diagrams** in any Markdown, with a full-screen pan/zoom viewer.
-- **Full-text search** across conversations, thinking blocks, tool content, and project documents.
+- **Full-text search** across conversation text and project documents (thinking blocks and tool bodies are not indexed).
 - **Export** individual conversations to Markdown/JSON, or the whole archive to a single zip.
 - **English/Russian UI** with automatic language detection.
 - **Light/dark theme.**

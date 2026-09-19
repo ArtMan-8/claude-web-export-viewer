@@ -1,5 +1,7 @@
 # Персональные данные экспорта — в git не попадают никогда
 claude-data/
+.mcp.json
+.claude
 
 node_modules
 dist
@@ -20,3 +22,6 @@ npm-debug.log*
 .idea
 .vscode/*
 !.vscode/extensions.json
+
+# graphify: производный граф кода, пересобирается через `graphify update .`
+graphify-out

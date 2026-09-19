@@ -54,3 +54,13 @@ Design decisions and the full field map for each export format revision live in 
 - ```` ```mermaid ```` fences in any `<Markdown>` render as diagrams: `mermaid-diagram.tsx` lazy-loads the `mermaid` chunk (`securityLevel: 'strict'`, re-rendered on theme change; `look: 'classic'` + `layout: 'dagre'` because mermaid 12 defaults to ELK/neo, which draws orthogonal edges and pulls a 1.4 MB chunk), shows a fixed-height (500px) fitted preview, and opens `diagram-viewer.tsx` (Dialog with CSS-transform pan/zoom) full screen. Parse failures fall back to the plain code block. Content passed through `TruncatedCode` (tool bodies, conversation files) is deliberately not rendered as diagrams.
 - i18n: `react-i18next` with `ru`/`en` dictionaries; every user-visible string goes through `t()`, and warning/error codes from the lib map to keys in those dictionaries — add both languages when adding a code.
 - Export (`src/lib/export/`) produces Markdown/JSON per conversation and a whole-archive zip (`zip-all.ts`), reusing the same `ToolCall`/`ToolResult` shape dispatch as the UI.
+
+## graphify
+
+This project has a knowledge graph at graphify-out/ with god nodes, community structure, and cross-file relationships.
+
+Rules:
+- For codebase questions, first run `graphify query "<question>"` when graphify-out/graph.json exists. Use `graphify path "<A>" "<B>"` for relationships and `graphify explain "<concept>"` for focused concepts. These return a scoped subgraph, usually much smaller than GRAPH_REPORT.md or raw grep output.
+- If graphify-out/wiki/index.md exists, use it for broad navigation instead of raw source browsing.
+- Read graphify-out/GRAPH_REPORT.md only for broad architecture review or when query/path/explain do not surface enough context.
+- After modifying code, run `graphify update .` to keep the graph current (AST-only, no API cost).

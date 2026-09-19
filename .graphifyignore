@@ -1,0 +1,6 @@
+# Исключения для graphify (синтаксис gitignore, дополняет .gitignore).
+# Конфиги: дают только висячие узлы-ключи и god-ноды из npm-пакетов.
+package.json
+package-lock.json
+tsconfig*.json
+components.json
