@@ -14,9 +14,8 @@ export function TruncatedCode({ code, language }: { code: string; language?: str
 
   return (
     <div className="space-y-1">
-      {/* Markdown задаёт prose-pre:bg-transparent для тел сообщений — здесь код должен читаться
-          как терминальный вывод, поэтому фон и отступ возвращаем на обёртке. */}
-      <div className="rounded bg-background p-2 [&_pre]:m-0 [&_pre]:p-0">
+      {/* Фон и отступ у самого `pre` (index.css) — обёртка лишь снимает внешние поля prose */}
+      <div className="[&_pre]:m-0">
         <Markdown>{`${fence}\n${shown}\n\`\`\``}</Markdown>
       </div>
       {isLong && !expanded && (

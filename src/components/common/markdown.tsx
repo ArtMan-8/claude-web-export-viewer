@@ -22,8 +22,9 @@ const components: ComponentProps<typeof ReactMarkdown>['components'] = {
  * web_fetch с произвольных сайтов, и исполнять её сырой HTML небезопасно.
  */
 export const Markdown = memo(function Markdown({ children }: { children: string }) {
+  // Фон и отступ `pre` заданы глобально в index.css (`.prose pre`)
   return (
-    <div className="prose prose-sm dark:prose-invert max-w-none prose-pre:bg-transparent prose-pre:p-0">
+    <div className="prose prose-sm dark:prose-invert max-w-none">
       <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeHighlight]} components={components}>
         {children}
       </ReactMarkdown>

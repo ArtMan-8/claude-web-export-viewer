@@ -3,10 +3,25 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 @import "@fontsource-variable/geist";
-/* Тёмная тема кодовых блоков независимо от темы страницы — обычная практика (GitHub, Discord) */
-@import 'highlight.js/styles/github-dark-dimmed.css';
+/* Тема hljs следует теме страницы; копии из пакета, фон у `.hljs` обнулён (см. шапки файлов) */
+@import './styles/hljs-light.css';
+@import './styles/hljs-dark.css';
 
 @custom-variant dark (&:is(.dark *));
+
+/*
+ * Блоки кода: фон, рамку и отступ задаёт `pre`, а не `code.hljs` — иначе блок
+ * без языка (вывод bash_tool, текстовые результаты, fenced-блок без языка)
+ * остаётся без фона и с цветом текста `prose`, рассчитанным на тёмный фон.
+ * Правило вне слоёв, чтобы перебить `--tw-prose-pre-*` из typography.
+ */
+.prose pre {
+  @apply rounded-md border bg-muted p-3 text-foreground;
+}
+.dark .prose pre {
+  background-color: #22272e;
+  color: #adbac7;
+}
 
 @theme inline {
     --font-heading: var(--font-sans);
