@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from '@tanstack/react-router'
-import { ChevronDown, Download, FileText, MessageSquare } from 'lucide-react'
+import { ChevronDown, Download, MessageSquare } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
@@ -10,6 +10,8 @@ import { Markdown } from '~/components/common/markdown'
 import { CsvTable } from '~/components/common/csv-table'
 import { LINK_CHIP_CLASS } from '~/components/common/link-chip'
 import { ScrollToTopButton } from '~/components/common/scroll-to-top-button'
+import { DocTree } from '~/components/project/doc-tree'
+import { buildDocTree } from '~/lib/archive/doc-tree'
 import type { Project } from '~/lib/archive/model'
 import { displayNameOf } from '~/lib/display-name'
 import { projectToJson } from '~/lib/export/json'
@@ -28,6 +30,8 @@ export function ProjectView({ project }: { project: Project }) {
   const [selectedDocUuid, setSelectedDocUuid] = useState(project.docs[0]?.uuid ?? null)
   const [descriptionOpen, setDescriptionOpen] = useState(false)
   const [promptOpen, setPromptOpen] = useState(false)
+  // Папки развёрнуты по умолчанию (Q12) — храним только свёрнутые
+  const [collapsedPaths, setCollapsedPaths] = useState<Set<string>>(() => new Set())
   const docScrollRef = useRef<HTMLDivElement>(null)
 
   // Компонент маршрута переиспользуется между проектами — без сброса состояние
@@ -37,6 +41,7 @@ export function ProjectView({ project }: { project: Project }) {
     setSelectedDocUuid(project.docs[0]?.uuid ?? null)
     setDescriptionOpen(false)
     setPromptOpen(false)
+    setCollapsedPaths(new Set())
   }, [project.uuid])
 
   const filteredDocs = useMemo(() => {
@@ -50,6 +55,19 @@ export function ProjectView({ project }: { project: Project }) {
     )
     return project.docs.filter((doc) => matchingDocUuids.has(doc.uuid))
   }, [project.docs, project.uuid, docIndex, debouncedFilter])
+
+  // Дерево из отфильтрованных документов: папки без совпадений исчезают сами (Q14)
+  const docTree = useMemo(() => buildDocTree(filteredDocs), [filteredDocs])
+  const isFiltering = normalizeQuery(debouncedFilter).length > 0
+
+  const toggleDir = (path: string) => {
+    setCollapsedPaths((prev) => {
+      const next = new Set(prev)
+      if (next.has(path)) next.delete(path)
+      else next.add(path)
+      return next
+    })
+  }
 
   // Искать выбранный документ нужно в отфильтрованном списке — иначе после
   // фильтрации справа продолжает показываться документ, которого больше нет в списке слева.
@@ -138,19 +156,14 @@ export function ProjectView({ project }: { project: Project }) {
             {filteredDocs.length === 0 ? (
               <p className="p-3 text-sm text-muted-foreground">{t('project.noDocsFound')}</p>
             ) : (
-              filteredDocs.map((doc) => (
-                <button
-                  key={doc.uuid}
-                  onClick={() => setSelectedDocUuid(doc.uuid)}
-                  title={doc.filename}
-                  className={`flex w-full items-center gap-1.5 truncate border-b px-3 py-2 text-left text-sm hover:bg-accent ${
-                    selectedDoc?.uuid === doc.uuid ? 'bg-accent' : ''
-                  }`}
-                >
-                  <FileText className="size-3.5 shrink-0 text-muted-foreground" />
-                  <span className="truncate">{displayNameOf(doc.filename, t('common.noName'))}</span>
-                </button>
-              ))
+              <DocTree
+                nodes={docTree}
+                selectedDocUuid={selectedDoc?.uuid ?? null}
+                collapsedPaths={collapsedPaths}
+                forceExpanded={isFiltering}
+                onSelectDoc={setSelectedDocUuid}
+                onToggleDir={toggleDir}
+              />
             )}
           </div>
         </div>
