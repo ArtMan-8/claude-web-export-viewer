@@ -11,6 +11,7 @@ function makeArchive(overrides: Partial<Archive> = {}): Archive {
     users: [],
     loginEvents: [],
     projectLinks: [],
+    artifacts: [],
     warnings: [],
     exportedAt: null,
     ...overrides,

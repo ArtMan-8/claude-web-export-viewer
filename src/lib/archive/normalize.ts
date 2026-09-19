@@ -1,4 +1,5 @@
 import type {
+  RawArtifactMeta,
   RawAttachment,
   RawContentBlock,
   RawConversation,
@@ -12,6 +13,8 @@ import type {
   RawUser,
 } from './raw-types'
 import type {
+  Artifact,
+  ArtifactVersion,
   Block,
   Citation,
   Conversation,
@@ -719,5 +722,55 @@ export function normalizeLoginEvent(raw: RawLoginEvent): LoginEvent {
     country: raw.location_info?.country ?? null,
     region: raw.location_info?.region ?? null,
     city: raw.location_info?.city ?? null,
+  }
+}
+
+/** Путь версии внутри frames-zip: рядом с artifact.json, в папке versions/. */
+function artifactVersionPath(metaPath: string, versionId: string): string {
+  const dir = metaPath.includes('/') ? metaPath.slice(0, metaPath.lastIndexOf('/')) : ''
+  return `${dir ? `${dir}/` : ''}versions/${versionId}.html`
+}
+
+/**
+ * Собирает артефакт из artifact.json и HTML версий (§4.2 плана 2026-09).
+ * Версия без файла остаётся в списке с html: null и предупреждением — так
+ * видно, что она была, а не молча пропала. Использованные html удаляются из
+ * `htmlByPath`, чтобы вызывающий мог пожаловаться на файлы без artifact.json.
+ */
+export function normalizeArtifact(
+  meta: RawArtifactMeta,
+  metaPath: string,
+  htmlByPath: Map<string, string>,
+  warnings: LoadWarning[],
+): Artifact {
+  const versions: ArtifactVersion[] = (meta.versions ?? []).map((raw) => {
+    const path = artifactVersionPath(metaPath, raw.id)
+    const html = htmlByPath.get(path) ?? null
+    if (html === null) {
+      warnings.push({ code: 'artifactVersionMissing', params: { artifact: meta.id, version: raw.id } })
+    } else {
+      htmlByPath.delete(path)
+    }
+    return {
+      id: raw.id,
+      title: raw.title ?? '',
+      description: raw.description ?? '',
+      createdAt: raw.created_at ?? '',
+      html,
+    }
+  })
+  versions.sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+
+  const activeVersionId = typeof meta.active_version === 'string' ? meta.active_version : null
+  const active = versions.find((v) => v.id === activeVersionId) ?? versions[0]
+
+  return {
+    id: meta.id,
+    visibility: meta.visibility ?? '',
+    ownerAccountUuid: meta.owner_account ?? '',
+    updatedAt: meta.updated_at ?? '',
+    activeVersionId,
+    versions,
+    title: active?.title ?? '',
   }
 }

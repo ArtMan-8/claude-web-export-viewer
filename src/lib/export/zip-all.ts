@@ -9,7 +9,8 @@ function slugify(input: string): string {
   const slug = input
     .toLowerCase()
     .normalize('NFKD')
-    .replace(/[\u0300-\u036f]/g, '') // диакритика латиницы (после NFKD); кириллица не трогается
+    .replace(/(?<=[a-z])[\u0300-\u036f]/g, '') // диакритика только у латиницы: NFKD раскладывает и й/ё, их надо собрать обратно
+    .normalize('NFC')
     .replace(/[^a-zа-яё0-9]+/gi, '-')
     .replace(/^-+|-+$/g, '')
     .slice(0, 60)
@@ -75,6 +76,23 @@ export function buildFullExportZip(archive: Archive, options: ZipAllOptions): Ui
     for (const doc of project.docs) {
       const segments = doc.filename ? doc.filename.split('/').map(safeSegment) : [`${doc.uuid}.md`]
       files[`projects/${dir}/${segments.join('/')}`] = strToU8(doc.content)
+    }
+  }
+
+  if (archive.artifacts.length > 0) {
+    indexLines.push('', `## ${i18next.t('export.artifactsHeading')}`, '')
+    const usedArtifactDirs = new Set<string>()
+    for (const artifact of archive.artifacts) {
+      const artifactName = displayNameOf(artifact.title, untitled)
+      const dir = uniqueName(safeSegment(slugify(artifactName)), usedArtifactDirs)
+      const links: string[] = []
+      for (const version of artifact.versions) {
+        if (version.html === null) continue
+        const path = `artifacts/${dir}/${safeSegment(version.id)}.html`
+        files[path] = strToU8(version.html)
+        links.push(`[${version.createdAt.slice(0, 10)}](${path})`)
+      }
+      indexLines.push(`- ${artifactName} (${i18next.t('artifact.versionsCount', { count: artifact.versions.length })}): ${links.join(', ')}`)
     }
   }
 

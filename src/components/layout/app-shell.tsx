@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { Link, Outlet, useRouterState } from '@tanstack/react-router'
-import { Archive, LayoutDashboard, MessageSquare, FolderOpen, UserRound, RotateCcw } from 'lucide-react'
+import { Archive, Frame, LayoutDashboard, MessageSquare, FolderOpen, UserRound, RotateCcw } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import {
   Sidebar,
@@ -28,13 +28,16 @@ const NAV_ITEMS = [
   { to: '/', labelKey: 'nav.dashboard', icon: LayoutDashboard },
   { to: '/conversations', labelKey: 'nav.conversations', icon: MessageSquare },
   { to: '/projects', labelKey: 'nav.projects', icon: FolderOpen },
+  // Старые выгрузки без категории frames не получают пустой раздел (Q5)
+  { to: '/artifacts', labelKey: 'nav.artifacts', icon: Frame, hideWhenEmpty: true },
   { to: '/account', labelKey: 'nav.account', icon: UserRound },
 ] as const
 
 export function AppShell({ children }: { children?: ReactNode }) {
   const { t } = useTranslation()
-  const { reset } = useArchive()
+  const { archive, reset } = useArchive()
   const pathname = useRouterState({ select: (s) => s.location.pathname })
+  const hasArtifacts = (archive?.artifacts.length ?? 0) > 0
 
   return (
     // По умолчанию у SidebarProvider min-h-svh (растягивается по контенту, скроллит вся
@@ -64,6 +67,7 @@ export function AppShell({ children }: { children?: ReactNode }) {
             <SidebarGroupContent>
               <SidebarMenu>
                 {NAV_ITEMS.map((item) => {
+                  if ('hideWhenEmpty' in item && !hasArtifacts) return null
                   const active = item.to === '/' ? pathname === '/' : pathname.startsWith(item.to)
                   const label = t(item.labelKey)
                   return (

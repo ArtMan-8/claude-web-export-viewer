@@ -6,6 +6,7 @@
     "dashboard": "Дашборд",
     "conversations": "Беседы",
     "projects": "Проекты",
+    "artifacts": "Артефакты",
     "account": "Аккаунт",
     "newArchive": "Другой архив",
     "resetArchiveTooltip": "Загрузить другой архив",
@@ -60,7 +61,8 @@
         "conversation": "Беседа",
         "project": "Проект"
       }
-    }
+    },
+    "artifacts": "Артефакты"
   },
   "account": {
     "title": "Аккаунт",
@@ -91,6 +93,24 @@
     "selectPrompt": "Выберите проект слева",
     "searchPlaceholder": "Поиск по проектам",
     "matchesCount": "совпало документов: {{count}}"
+  },
+  "artifact": {
+    "title": "Артефакт",
+    "versions": "Версий: {{count}}",
+    "versionsCount": "{{count}} версий",
+    "activeVersion": "активная версия",
+    "versionMissing": "файл версии не вошёл в экспорт",
+    "visibility": {
+      "public": "публичный",
+      "private": "приватный",
+      "unlisted": "по ссылке"
+    },
+    "download": "Скачать .html",
+    "runScripts": "Выполнять скрипты",
+    "runScriptsHint": "Скрипты изолированы от читалки, но получают доступ к сети. Действует только пока открыт этот артефакт.",
+    "notFound": "Артефакт не найден",
+    "selectPrompt": "Выберите артефакт слева",
+    "noArtifacts": "В архиве нет артефактов"
   },
   "conversation": {
     "export": "Экспорт",
@@ -170,7 +190,9 @@
     "unknown": "Неизвестная ошибка: {{message}}",
     "unknownBlockType": "Неизвестный тип блока «{{type}}» ({{count}})",
     "unknownResultItem": "Неизвестный тип элемента результата «{{type}}» ({{count}})",
-    "unknownKeys": "Неизвестное поле {{context}}.{{key}} ({{count}})"
+    "unknownKeys": "Неизвестное поле {{context}}.{{key}} ({{count}})",
+    "artifactMetaMissing": "HTML артефакта {{file}} без artifact.json — пропущен",
+    "artifactVersionMissing": "У артефакта {{artifact}} нет файла версии {{version}}"
   },
   "export": {
     "speakerHuman": "Вы",
@@ -187,6 +209,7 @@
     "exitCode": "код возврата: {{code}}",
     "deletedHeading": "Удалённые",
     "attachment": "Вложение: {{name}}",
-    "fileNotExported": "Файл: {{name}} — не вошёл в экспорт"
+    "fileNotExported": "Файл: {{name}} — не вошёл в экспорт",
+    "artifactsHeading": "Артефакты"
   }
 }

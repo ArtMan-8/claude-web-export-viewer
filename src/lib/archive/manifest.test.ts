@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { parseManifest } from './manifest'
+import { KNOWN_CATEGORIES, parseManifest } from './manifest'
 
 describe('parseManifest', () => {
   test('разбирает обычный манифест', () => {
@@ -46,6 +46,10 @@ describe('parseManifest', () => {
     })
 
     expect(manifest.entries).toEqual([{ category: 'memories', part: 0, filename: 'memories-000.zip' }])
+  })
+
+  test('категория frames (артефакты) известна', () => {
+    expect(KNOWN_CATEGORIES.has('frames')).toBe(true)
   })
 
   test('бросает ошибку, если это не манифест', () => {

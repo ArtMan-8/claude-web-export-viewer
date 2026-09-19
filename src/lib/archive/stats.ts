@@ -21,6 +21,7 @@ export interface ArchiveStats {
   deletedMessageCount: number
   deletedProjectCount: number
   deletedDocCount: number
+  artifactCount: number
 }
 
 export function computeStats(archive: Archive): ArchiveStats {
@@ -96,5 +97,6 @@ export function computeStats(archive: Archive): ArchiveStats {
     deletedMessageCount,
     deletedProjectCount,
     deletedDocCount,
+    artifactCount: archive.artifacts.length,
   }
 }

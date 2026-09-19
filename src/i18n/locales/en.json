@@ -6,6 +6,7 @@
     "dashboard": "Dashboard",
     "conversations": "Conversations",
     "projects": "Projects",
+    "artifacts": "Artifacts",
     "account": "Account",
     "newArchive": "Another archive",
     "resetArchiveTooltip": "Load another archive",
@@ -60,7 +61,8 @@
         "conversation": "Conversation",
         "project": "Project"
       }
-    }
+    },
+    "artifacts": "Artifacts"
   },
   "account": {
     "title": "Account",
@@ -91,6 +93,24 @@
     "selectPrompt": "Select a project on the left",
     "searchPlaceholder": "Search projects",
     "matchesCount": "{{count}} documents matched"
+  },
+  "artifact": {
+    "title": "Artifact",
+    "versions": "Versions: {{count}}",
+    "versionsCount": "{{count}} versions",
+    "activeVersion": "active version",
+    "versionMissing": "version file not included in the export",
+    "visibility": {
+      "public": "public",
+      "private": "private",
+      "unlisted": "unlisted"
+    },
+    "download": "Download .html",
+    "runScripts": "Run scripts",
+    "runScriptsHint": "Scripts are isolated from the viewer but can reach the network. Applies only while this artifact is open.",
+    "notFound": "Artifact not found",
+    "selectPrompt": "Select an artifact on the left",
+    "noArtifacts": "No artifacts in this archive"
   },
   "conversation": {
     "export": "Export",
@@ -170,7 +190,9 @@
     "unknown": "Unknown error: {{message}}",
     "unknownBlockType": "Unknown block type \"{{type}}\" ({{count}})",
     "unknownResultItem": "Unknown result item type \"{{type}}\" ({{count}})",
-    "unknownKeys": "Unknown field {{context}}.{{key}} ({{count}})"
+    "unknownKeys": "Unknown field {{context}}.{{key}} ({{count}})",
+    "artifactMetaMissing": "Artifact HTML {{file}} has no artifact.json — skipped",
+    "artifactVersionMissing": "Artifact {{artifact}} is missing the file for version {{version}}"
   },
   "export": {
     "speakerHuman": "You",
@@ -187,6 +209,7 @@
     "exitCode": "exit code: {{code}}",
     "deletedHeading": "Deleted",
     "attachment": "Attachment: {{name}}",
-    "fileNotExported": "File: {{name}} — not included in the export"
+    "fileNotExported": "File: {{name}} — not included in the export",
+    "artifactsHeading": "Artifacts"
   }
 }

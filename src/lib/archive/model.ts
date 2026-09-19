@@ -169,6 +169,28 @@ export interface Project {
   raw: RawProject
 }
 
+export interface ArtifactVersion {
+  id: string
+  title: string
+  description: string
+  createdAt: string
+  /** null, если версия объявлена в artifact.json, но файла versions/<id>.html в архиве нет */
+  html: string | null
+}
+
+/** Артефакт из категории `frames`; с беседой не связывается — связи в данных нет (Q8 плана 2026-09) */
+export interface Artifact {
+  id: string
+  visibility: string
+  ownerAccountUuid: string
+  updatedAt: string
+  activeVersionId: string | null
+  /** По createdAt, новые первыми */
+  versions: ArtifactVersion[]
+  /** Заголовок активной версии, иначе последней */
+  title: string
+}
+
 export interface UserProfile {
   uuid: string
   fullName: string
@@ -208,6 +230,7 @@ export interface Archive {
   users: UserProfile[]
   loginEvents: LoginEvent[]
   projectLinks: ProjectLink[]
+  artifacts: Artifact[]
   warnings: LoadWarning[]
   exportedAt: string | null // manifest.created_at
 }

@@ -16,7 +16,7 @@ export interface RawManifest {
 export interface RawManifestDataFile {
   batch_index: number
   export_url: string
-  category: 'light_metadata' | 'projects' | 'conversations' | (string & {})
+  category: 'light_metadata' | 'projects' | 'conversations' | 'frames' | (string & {})
   part: number
   filename: string
 }
@@ -202,6 +202,27 @@ export interface RawProject {
   updated_at: string
   creator: { uuid: string; full_name: string }
   docs: RawProjectDoc[]
+}
+
+/**
+ * frames-*.zip → artifacts/<id>/artifact.json. HTML версий лежит рядом в
+ * versions/<version-id>.html и в JSON не входит (§2.2 плана 2026-09).
+ */
+export interface RawArtifactVersion {
+  id: string
+  title: string
+  description: string
+  created_at: string
+}
+
+export interface RawArtifactMeta {
+  id: string
+  kind: 'artifact'
+  visibility: string
+  owner_account: string
+  updated_at: string
+  active_version: string | null
+  versions: RawArtifactVersion[]
 }
 
 export interface RawUser {

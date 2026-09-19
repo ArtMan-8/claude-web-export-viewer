@@ -1,6 +1,7 @@
 import { unzipSync } from 'fflate'
 import { parseManifest } from './manifest'
 import type {
+  RawArtifactMeta,
   RawConversation,
   RawLoginEvent,
   RawProject,
@@ -18,6 +19,10 @@ export interface LoadedRawData {
   projects: RawProject[]
   users: RawUser[]
   loginEvents: RawLoginEvent[]
+  /** artifact.json из frames-*.zip; путь внутри zip нужен, чтобы сопоставить версии с html */
+  artifacts: { path: string; meta: RawArtifactMeta }[]
+  /** HTML версий артефактов по пути внутри zip (`artifacts/<id>/versions/<ver>.html`) */
+  artifactHtml: Map<string, string>
   manifestCreatedAt: string | null
   warnings: LoadWarning[]
 }
@@ -44,9 +49,19 @@ function isZipFilename(name: string): boolean {
   return /\.zip$/i.test(name)
 }
 
-/** Плоская конверсия «имя файла внутри архива → байты», из zip или напрямую. */
-function collectJsonEntries(files: RawFileInput[], warnings: LoadWarning[]): RawFileInput[] {
-  const entries: RawFileInput[] = []
+/** Запись архива: `name` — имя для предупреждений (zip:путь), `innerPath` — путь внутри zip. */
+interface ArchiveEntry extends RawFileInput {
+  innerPath: string
+}
+
+/**
+ * Плоская конверсия «имя файла внутри архива → байты», из zip или напрямую.
+ * Из zip берутся записи с любым расширением — что с ними делать, решает
+ * loadRawArchive по расширению (.json разбирается, .html — артефакт, прочее
+ * пропускается с предупреждением).
+ */
+function collectEntries(files: RawFileInput[], warnings: LoadWarning[]): ArchiveEntry[] {
+  const entries: ArchiveEntry[] = []
 
   for (const file of files) {
     if (isManifestFilename(file.name)) continue
@@ -57,7 +72,7 @@ function collectJsonEntries(files: RawFileInput[], warnings: LoadWarning[]): Raw
         for (const [innerName, bytes] of Object.entries(unzipped)) {
           if (innerName.endsWith('/')) continue // директория
           if (bytes.length === 0) continue
-          entries.push({ name: `${file.name}:${innerName}`, bytes })
+          entries.push({ name: `${file.name}:${innerName}`, innerPath: innerName, bytes })
         }
       } catch (error) {
         warnings.push({
@@ -70,7 +85,7 @@ function collectJsonEntries(files: RawFileInput[], warnings: LoadWarning[]): Raw
     }
 
     if (/\.json$/i.test(file.name)) {
-      entries.push(file)
+      entries.push({ ...file, innerPath: file.name })
       continue
     }
 
@@ -109,6 +124,11 @@ function looksLikeUser(value: unknown): value is RawUser {
   return isObject(value) && 'uuid' in value && 'email_address' in value
 }
 
+// artifact.json распознаётся по kind === 'artifact' И массиву versions — иначе unknownObjectFormat, как раньше
+function looksLikeArtifactMeta(value: unknown): value is RawArtifactMeta {
+  return isObject(value) && value.kind === 'artifact' && Array.isArray(value.versions)
+}
+
 /**
  * Определяет тип файла по форме содержимого, а не по имени: имя файла в
  * экспорте claude.ai менялось между версиями формата и может измениться
@@ -118,10 +138,11 @@ function looksLikeUser(value: unknown): value is RawUser {
  */
 function classifyAndCollect(
   json: unknown,
-  entryName: string,
+  entry: ArchiveEntry,
   out: LoadedRawData,
   warnings: LoadWarning[],
 ): void {
+  const entryName = entry.name
   if (Array.isArray(json)) {
     if (json.length === 0) return // пустой массив — беседа стартового проекта без сообщений
 
@@ -155,6 +176,10 @@ function classifyAndCollect(
       out.loginEvents.push(...(json.login_events as RawLoginEvent[]))
       return
     }
+    if (looksLikeArtifactMeta(json)) {
+      out.artifacts.push({ path: entry.innerPath, meta: json })
+      return
+    }
 
     warnings.push({ code: 'unknownObjectFormat', params: { file: entryName } })
     return
@@ -171,6 +196,8 @@ export function loadRawArchive(files: RawFileInput[]): LoadedRawData {
     projects: [],
     users: [],
     loginEvents: [],
+    artifacts: [],
+    artifactHtml: new Map(),
     manifestCreatedAt: null,
     warnings,
   }
@@ -201,19 +228,26 @@ export function loadRawArchive(files: RawFileInput[]): LoadedRawData {
     }
   }
 
-  const jsonEntries = collectJsonEntries(files, warnings)
-
-  for (const entry of jsonEntries) {
+  for (const entry of collectEntries(files, warnings)) {
+    if (/\.html$/i.test(entry.innerPath)) {
+      out.artifactHtml.set(entry.innerPath, decoder.decode(entry.bytes))
+      continue
+    }
+    if (!/\.json$/i.test(entry.innerPath)) {
+      warnings.push({ code: 'fileSkipped', params: { file: entry.name } })
+      continue
+    }
     const json = parseJson(entry, warnings)
     if (json === undefined) continue
-    classifyAndCollect(json, entry.name, out, warnings)
+    classifyAndCollect(json, entry, out, warnings)
   }
 
   if (
     out.conversations.length === 0 &&
     out.projects.length === 0 &&
     out.users.length === 0 &&
-    out.loginEvents.length === 0
+    out.loginEvents.length === 0 &&
+    out.artifacts.length === 0
   ) {
     throw new ArchiveLoadError('archiveEmpty')
   }

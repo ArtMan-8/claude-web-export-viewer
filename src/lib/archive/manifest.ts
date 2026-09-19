@@ -1,6 +1,6 @@
 import type { RawManifest, RawManifestDataFile } from './raw-types'
 
-export type ArchiveCategory = 'light_metadata' | 'projects' | 'conversations'
+export type ArchiveCategory = 'light_metadata' | 'projects' | 'conversations' | 'frames'
 
 /**
  * Один ожидаемый файл данных архива. `category` — категория как она есть в
@@ -22,6 +22,7 @@ export const KNOWN_CATEGORIES: ReadonlySet<ArchiveCategory> = new Set([
   'light_metadata',
   'projects',
   'conversations',
+  'frames', // артефакты: artifacts/<id>/artifact.json + versions/<ver>.html (выгрузка 2026-09-18)
 ])
 
 function isRawManifest(value: unknown): value is RawManifest {

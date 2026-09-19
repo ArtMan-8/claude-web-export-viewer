@@ -1,7 +1,16 @@
 import { describe, expect, test } from 'vitest'
 import { makeConversation, makeMessage, makeProject, textBlock, toolResultBlock, toolUseBlock } from '~/test-fixtures/fixtures'
-import { collectConversationFiles, createFieldDetector, normalizeConversation, normalizeProject, parseToolCall, parseToolResult } from './normalize'
-import type { RawAttachment, RawContentBlock } from './raw-types'
+import {
+  collectConversationFiles,
+  createFieldDetector,
+  normalizeArtifact,
+  normalizeConversation,
+  normalizeProject,
+  parseToolCall,
+  parseToolResult,
+} from './normalize'
+import type { LoadWarning } from './model'
+import type { RawArtifactMeta, RawAttachment, RawContentBlock } from './raw-types'
 
 describe('normalizeConversation', () => {
   test('игнорирует мусорное плоское поле text и берёт контент только из content[]', () => {
@@ -605,5 +614,54 @@ describe('createFieldDetector', () => {
 
     normalizeConversation(conversation, detector)
     expect(detector.toWarnings()).toEqual([])
+  })
+})
+
+describe('normalizeArtifact', () => {
+  const meta: RawArtifactMeta = {
+    id: 'art-1',
+    kind: 'artifact',
+    visibility: 'public',
+    owner_account: 'account-1',
+    updated_at: '2026-08-29T18:16:25+00:00',
+    active_version: 'v2',
+    versions: [
+      { id: 'v1', title: 'Старый заголовок', description: 'Первая версия', created_at: '2026-08-29T11:54:12+00:00' },
+      { id: 'v2', title: 'Радар', description: 'Радар', created_at: '2026-08-29T12:18:22+00:00' },
+    ],
+  }
+
+  test('сопоставляет версии с html по пути versions/<id>.html, сортирует новые первыми, заголовок — активной версии', () => {
+    const htmlByPath = new Map([
+      ['artifacts/art-1/versions/v1.html', '<p>v1</p>'],
+      ['artifacts/art-1/versions/v2.html', '<p>v2</p>'],
+    ])
+    const warnings: LoadWarning[] = []
+
+    const artifact = normalizeArtifact(meta, 'artifacts/art-1/artifact.json', htmlByPath, warnings)
+
+    expect(artifact).toMatchObject({ id: 'art-1', title: 'Радар', activeVersionId: 'v2', visibility: 'public' })
+    expect(artifact.versions.map((v) => [v.id, v.html])).toEqual([
+      ['v2', '<p>v2</p>'],
+      ['v1', '<p>v1</p>'],
+    ])
+    expect(warnings).toEqual([])
+    expect(htmlByPath.size).toBe(0) // использованные html изъяты — остаток означает html без artifact.json
+  })
+
+  test('версия без файла остаётся с html: null и предупреждением', () => {
+    const htmlByPath = new Map([['artifacts/art-1/versions/v2.html', '<p>v2</p>']])
+    const warnings: LoadWarning[] = []
+
+    const artifact = normalizeArtifact(meta, 'artifacts/art-1/artifact.json', htmlByPath, warnings)
+
+    expect(artifact.versions.find((v) => v.id === 'v1')?.html).toBeNull()
+    expect(warnings).toEqual([{ code: 'artifactVersionMissing', params: { artifact: 'art-1', version: 'v1' } }])
+  })
+
+  test('без active_version заголовок берётся у самой новой версии', () => {
+    const artifact = normalizeArtifact({ ...meta, active_version: null }, 'artifacts/art-1/artifact.json', new Map(), [])
+    expect(artifact.activeVersionId).toBeNull()
+    expect(artifact.title).toBe('Радар')
   })
 })

@@ -10,9 +10,23 @@ function jsonFile(name: string, data: unknown): RawFileInput {
 function zipFile(name: string, entries: Record<string, unknown>): RawFileInput {
   const zipped: Record<string, Uint8Array> = {}
   for (const [entryName, data] of Object.entries(entries)) {
-    zipped[entryName] = strToU8(JSON.stringify(data))
+    // строки кладутся как есть (html артефактов), остальное — как JSON
+    zipped[entryName] = strToU8(typeof data === 'string' ? data : JSON.stringify(data))
   }
   return { name, bytes: zipSync(zipped) }
+}
+
+const artifactMeta = {
+  id: 'art-1',
+  kind: 'artifact',
+  visibility: 'public',
+  owner_account: 'account-1',
+  updated_at: '2026-08-29T18:16:25+00:00',
+  active_version: 'v2',
+  versions: [
+    { id: 'v2', title: 'Радар', description: 'Радар', created_at: '2026-08-29T12:18:22+00:00' },
+    { id: 'v1', title: 'Радар', description: 'Первая версия', created_at: '2026-08-29T11:54:12+00:00' },
+  ],
 }
 
 describe('loadRawArchive', () => {
@@ -96,5 +110,30 @@ describe('loadRawArchive', () => {
 
   test('бросает ошибку, если не найдено вообще ничего узнаваемого', () => {
     expect(() => loadRawArchive([jsonFile('random.json', { foo: 'bar' })])).toThrow()
+  })
+
+  test('frames: artifact.json и html версий читаются без предупреждений', () => {
+    const framesZip = zipFile('frames-000.zip', {
+      'artifacts/art-1/artifact.json': artifactMeta,
+      'artifacts/art-1/versions/v1.html': '<!doctype html><p>v1</p>',
+      'artifacts/art-1/versions/v2.html': '<!doctype html><p>v2</p>',
+    })
+
+    const result = loadRawArchive([framesZip])
+
+    expect(result.artifacts).toEqual([{ path: 'artifacts/art-1/artifact.json', meta: artifactMeta }])
+    expect([...result.artifactHtml.keys()].sort()).toEqual(['artifacts/art-1/versions/v1.html', 'artifacts/art-1/versions/v2.html'])
+    expect(result.artifactHtml.get('artifacts/art-1/versions/v2.html')).toBe('<!doctype html><p>v2</p>')
+    expect(result.warnings).toEqual([])
+  })
+
+  test('файл с незнакомым расширением внутри zip пропускается с предупреждением', () => {
+    const zip = zipFile('frames-000.zip', {
+      'artifacts/art-1/artifact.json': artifactMeta,
+      'artifacts/art-1/preview.png': 'not really png',
+    })
+
+    const result = loadRawArchive([zip])
+    expect(result.warnings).toEqual([{ code: 'fileSkipped', params: { file: 'frames-000.zip:artifacts/art-1/preview.png' } }])
   })
 })

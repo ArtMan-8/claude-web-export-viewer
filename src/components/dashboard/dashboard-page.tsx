@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { Download, MessageSquare, FolderOpen, FileText, AlertTriangle } from 'lucide-react'
+import { Download, MessageSquare, FolderOpen, FileText, Frame, AlertTriangle } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card'
 import { Button } from '~/components/ui/button'
@@ -110,6 +110,19 @@ export function DashboardPage() {
           </CardContent>
         </Card>
       </div>
+
+      {stats.artifactCount > 0 && (
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+              <Frame className="size-4" /> {t('dashboard.artifacts')}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-semibold">{stats.artifactCount}</div>
+          </CardContent>
+        </Card>
+      )}
 
       <DeletedCard archive={archive} stats={stats} />
 
