@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { ChevronDown, Download, Play } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Badge } from '~/components/ui/badge'
@@ -6,6 +6,7 @@ import { Button } from '~/components/ui/button'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '~/components/ui/dropdown-menu'
 import type { Artifact, ArtifactVersion } from '~/lib/archive/model'
 import { displayNameOf } from '~/lib/display-name'
+import { prepareArtifactSrcdoc } from '~/lib/artifact-html'
 import { downloadText } from '~/lib/download'
 
 function formatDateTime(iso: string): string {
@@ -37,6 +38,9 @@ export function ArtifactView({ artifact }: { artifact: Artifact }) {
 
   const version = artifact.versions.find((v) => v.id === versionId) ?? defaultVersion
   const title = displayNameOf(artifact.title, t('common.untitled'))
+
+  // Якоря внутри артефакта работают только с <base href="about:srcdoc"> — см. prepareArtifactSrcdoc
+  const srcdoc = useMemo(() => (version?.html != null ? prepareArtifactSrcdoc(version.html) : null), [version?.html])
 
   const handleDownload = () => {
     if (!version || version.html === null) return
@@ -100,13 +104,13 @@ export function ArtifactView({ artifact }: { artifact: Artifact }) {
       </div>
 
       <div className="min-h-0 flex-1 bg-white">
-        {version && version.html !== null ? (
+        {version && srcdoc !== null ? (
           <iframe
             // key перемонтирует iframe при смене версии и режима — sandbox нельзя менять на лету
             key={`${version.id}:${runScripts ? 'scripts' : 'static'}`}
             title={title}
             sandbox={runScripts ? 'allow-scripts' : ''}
-            srcDoc={version.html}
+            srcDoc={srcdoc}
             className="h-full w-full border-0"
           />
         ) : (
