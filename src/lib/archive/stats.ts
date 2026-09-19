@@ -16,7 +16,7 @@ export interface ArchiveStats {
   docCount: number
   docsCharacters: number
   fileCount: number
-  /** Удалённые записи (§4.1 плана 2026-09): скелеты без содержимого, показываются только на дашборде */
+  /** Удалённые записи (§4.1 плана 18-09-2026): скелеты без содержимого, показываются только на дашборде */
   deletedConversationCount: number
   deletedMessageCount: number
   deletedProjectCount: number

@@ -50,7 +50,7 @@ export interface RawMessage {
   parent_message_uuid: string
 }
 
-/** Вложение пользователя с извлечённым текстом — форма проверена на выгрузке 2026-09-18 (§2.3 плана 2026-09). */
+/** Вложение пользователя с извлечённым текстом — форма проверена на выгрузке 2026-09-18 (§2.3 плана 18-09-2026). */
 export interface RawAttachment {
   file_name: string
   file_type: string
@@ -206,7 +206,7 @@ export interface RawProject {
 
 /**
  * frames-*.zip → artifacts/<id>/artifact.json. HTML версий лежит рядом в
- * versions/<version-id>.html и в JSON не входит (§2.2 плана 2026-09).
+ * versions/<version-id>.html и в JSON не входит (§2.2 плана 18-09-2026).
  */
 export interface RawArtifactVersion {
   id: string

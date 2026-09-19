@@ -92,7 +92,7 @@ export function ArchiveProvider({ children }: { children: ReactNode }) {
     setError(null)
   }, [])
 
-  // Удалённые записи — скелеты без содержимого, в индексы не идут (см. Q2 плана 2026-09)
+  // Удалённые записи — скелеты без содержимого, в индексы не идут (см. Q2 плана 18-09-2026)
   const searchIndex = useMemo(
     () => (archive ? buildSearchIndex(archive.conversations.filter((c) => !c.isDeleted)) : []),
     [archive],

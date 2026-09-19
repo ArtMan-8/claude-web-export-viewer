@@ -307,7 +307,7 @@ const KNOWN_RESULT_ITEM_TYPES = new Set(['text', 'knowledge', 'local_resource'])
 const LOCAL_RESOURCE_KEYS = new Set([
   'type', 'uuid', 'file_uuid', 'path', 'file_path', 'name', 'file_name', 'mime_type', 'artifact_publishable',
 ])
-// Вложения сообщения (§2.3 плана 2026-09): attachments несут извлечённый текст, files — только uuid
+// Вложения сообщения (§2.3 плана 18-09-2026): attachments несут извлечённый текст, files — только uuid
 const ATTACHMENT_KEYS = new Set(['file_name', 'file_type', 'file_size', 'extracted_content'])
 const FILE_KEYS = new Set(['file_uuid', 'file_name'])
 const KNOWN_DISPLAY_CONTENT_TYPES = new Set(['text', 'json_block', 'table', 'rich_link', 'rich_content'])
@@ -640,7 +640,7 @@ export function normalizeConversation(raw: RawConversation, detector: FieldDetec
   })
 
   // Удалённая беседа экспортируется скелетом: сообщения на месте, но у каждого
-  // стёрты и content, и text (см. §2.1 плана 2026-09). Вложения (attachments/files)
+  // стёрты и content, и text (см. §2.1 плана 18-09-2026). Вложения (attachments/files)
   // в критерий намеренно не входят — у удалённых бесед они тоже встречаются.
   const isDeleted =
     rawMessages.length > 0 &&
@@ -666,7 +666,7 @@ export function normalizeConversation(raw: RawConversation, detector: FieldDetec
 export function normalizeProject(raw: RawProject): Project {
   const rawDocs = raw.docs ?? []
   const isStubDoc = (doc: RawProjectDoc) => !doc.filename?.trim() && !doc.content?.trim()
-  // Удалённый проект — документы на месте, но все стали заглушками (§2.1 плана 2026-09)
+  // Удалённый проект — документы на месте, но все стали заглушками (§2.1 плана 18-09-2026)
   const isDeleted = rawDocs.length > 0 && rawDocs.every(isStubDoc)
 
   const docs: ProjectDoc[] = rawDocs
@@ -732,7 +732,7 @@ function artifactVersionPath(metaPath: string, versionId: string): string {
 }
 
 /**
- * Собирает артефакт из artifact.json и HTML версий (§4.2 плана 2026-09).
+ * Собирает артефакт из artifact.json и HTML версий (§4.2 плана 18-09-2026).
  * Версия без файла остаётся в списке с html: null и предупреждением — так
  * видно, что она была, а не молча пропала. Использованные html удаляются из
  * `htmlByPath`, чтобы вызывающий мог пожаловаться на файлы без artifact.json.

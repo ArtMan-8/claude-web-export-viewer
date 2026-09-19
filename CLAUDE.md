@@ -38,7 +38,7 @@ The whole app hinges on one pure function, `buildArchive(files: RawFileInput[]):
 
 **Boundary rule:** `raw-types.ts` must not leak outside `src/lib/archive/`. Components consume only `model.ts` types. The `raw` field on `Conversation`/`Project` exists solely for the "raw JSON" export mode and is not to be read by UI.
 
-Design decisions and the full field map for each export format revision live in `docs/plan-export-format-*.md` (numbered questions like "Q8", "§3.2" in code comments refer to those documents). When supporting a new export format, follow the existing pattern: write/extend the plan doc, then extend raw-types → normalize → model → UI → export, keeping tests alongside each `lib` module.
+Design decisions and the full field map for each export format revision live in `docs/*-plan-export-format.md` (numbered questions like "Q8", "§3.2" in code comments refer to those documents). When supporting a new export format, follow the existing pattern: write/extend the plan doc, then extend raw-types → normalize → model → UI → export, keeping tests alongside each `lib` module.
 
 ### State and routing
 

@@ -35,7 +35,7 @@ export interface ResultFile {
   isPublishable: boolean
 }
 
-/** Распознавание по форме `input` — см. docs/plan-export-format-2026-08.md §3.2 */
+/** Распознавание по форме `input` — см. docs/29-08-2026_plan-export-format.md §3.2 */
 export type ToolCall =
   | { kind: 'filePresent'; paths: string[] }
   | { kind: 'fileEdit'; path: string; oldText: string; newText: string; description: string }
@@ -47,7 +47,7 @@ export type ToolCall =
   | { kind: 'raw'; input: unknown }
   | { kind: 'none' }
 
-/** Распознавание по форме `content[]` — см. docs/plan-export-format-2026-08.md §3.3 */
+/** Распознавание по форме `content[]` — см. docs/29-08-2026_plan-export-format.md §3.3 */
 export type ToolResult =
   | { kind: 'command'; exitCode: number | null; stdout: string; stderr: string; rawText: string }
   | { kind: 'files'; files: ResultFile[] }
@@ -76,7 +76,7 @@ export type Block =
     }
   | { kind: 'unknown'; blockType: string; raw: unknown }
 
-/** Вложение пользователя: текст, который Claude прочитал из файла (§4.3 плана 2026-09) */
+/** Вложение пользователя: текст, который Claude прочитал из файла (§4.3 плана 18-09-2026) */
 export interface MessageAttachment {
   name: string // file_name; пустое — UI подставит «Вложение»
   type: string // file_type: 'txt', …
@@ -178,7 +178,7 @@ export interface ArtifactVersion {
   html: string | null
 }
 
-/** Артефакт из категории `frames`; с беседой не связывается — связи в данных нет (Q8 плана 2026-09) */
+/** Артефакт из категории `frames`; с беседой не связывается — связи в данных нет (Q8 плана 18-09-2026) */
 export interface Artifact {
   id: string
   visibility: string
