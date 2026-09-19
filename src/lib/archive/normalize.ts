@@ -1,6 +1,8 @@
 import type {
+  RawAttachment,
   RawContentBlock,
   RawConversation,
+  RawFile,
   RawLoginEvent,
   RawMessage,
   RawProject,
@@ -20,6 +22,8 @@ import type {
   LoadWarning,
   LoginEvent,
   Message,
+  MessageAttachment,
+  MessageFile,
   Project,
   ProjectDoc,
   ResultFile,
@@ -141,7 +145,7 @@ function extractResultFiles(content: RawToolResultBlock['content']): ResultFile[
           : basename(path)
       const mimeType = typeof item.mime_type === 'string' ? item.mime_type : null
       const uuid = typeof item.uuid === 'string' ? item.uuid : typeof item.file_uuid === 'string' ? item.file_uuid : ''
-      files.push({ path, name, mimeType, uuid })
+      files.push({ path, name, mimeType, uuid, isPublishable: item.artifact_publishable === true })
     }
   }
   return files
@@ -295,6 +299,14 @@ const TOOL_RESULT_KEYS = new Set([
   'hidden_in_chat', 'flags', 'structured_content',
 ])
 const KNOWN_RESULT_ITEM_TYPES = new Set(['text', 'knowledge', 'local_resource'])
+// Ключи элементов local_resource: оба варианта имён (path/file_path, name/file_name, uuid/file_uuid)
+// встречались в разных выгрузках; artifact_publishable появился в выгрузке 2026-09-18.
+const LOCAL_RESOURCE_KEYS = new Set([
+  'type', 'uuid', 'file_uuid', 'path', 'file_path', 'name', 'file_name', 'mime_type', 'artifact_publishable',
+])
+// Вложения сообщения (§2.3 плана 2026-09): attachments несут извлечённый текст, files — только uuid
+const ATTACHMENT_KEYS = new Set(['file_name', 'file_type', 'file_size', 'extracted_content'])
+const FILE_KEYS = new Set(['file_uuid', 'file_name'])
 const KNOWN_DISPLAY_CONTENT_TYPES = new Set(['text', 'json_block', 'table', 'rich_link', 'rich_content'])
 
 /** Собирает предупреждения о незнакомых данных по ходу нормализации, схлопывая повторы в счётчик (§6.3 плана). */
@@ -302,7 +314,6 @@ export function createFieldDetector() {
   const blockTypes = new Map<string, number>()
   const resultItemTypes = new Map<string, number>()
   const unknownKeys = new Map<string, { context: string; key: string; count: number }>()
-  let unverifiedAttachments = 0
 
   return {
     recordBlockType(type: string) {
@@ -316,9 +327,6 @@ export function createFieldDetector() {
       const existing = unknownKeys.get(id)
       unknownKeys.set(id, { context, key, count: (existing?.count ?? 0) + 1 })
     },
-    recordUnverifiedAttachment() {
-      unverifiedAttachments += 1
-    },
     toWarnings(): LoadWarning[] {
       const warnings: LoadWarning[] = []
       for (const [type, count] of blockTypes) warnings.push({ code: 'unknownBlockType', params: { type, count } })
@@ -326,7 +334,6 @@ export function createFieldDetector() {
       for (const { context, key, count } of unknownKeys.values()) {
         warnings.push({ code: 'unknownKeys', params: { context, key, count } })
       }
-      if (unverifiedAttachments > 0) warnings.push({ code: 'unverifiedAttachments', params: { count: unverifiedAttachments } })
       return warnings
     },
   }
@@ -353,9 +360,30 @@ function detectUnknownDisplayContentType(displayContent: unknown, context: strin
 function detectUnknownResultItems(content: RawToolResultBlock['content'], detector: FieldDetector): void {
   if (!Array.isArray(content)) return
   for (const item of content) {
-    if (isObject(item) && typeof item.type === 'string' && !KNOWN_RESULT_ITEM_TYPES.has(item.type)) {
+    if (!isObject(item) || typeof item.type !== 'string') continue
+    if (!KNOWN_RESULT_ITEM_TYPES.has(item.type)) {
       detector.recordResultItemType(item.type)
+    } else if (item.type === 'local_resource') {
+      detectUnknownKeys(item, LOCAL_RESOURCE_KEYS, 'local_resource', detector)
     }
+  }
+}
+
+function normalizeAttachment(raw: RawAttachment, detector: FieldDetector): MessageAttachment {
+  detectUnknownKeys(raw, ATTACHMENT_KEYS, 'attachment', detector)
+  return {
+    name: typeof raw.file_name === 'string' ? raw.file_name : '',
+    type: typeof raw.file_type === 'string' ? raw.file_type : '',
+    size: typeof raw.file_size === 'number' ? raw.file_size : null,
+    extractedText: typeof raw.extracted_content === 'string' ? raw.extracted_content : '',
+  }
+}
+
+function normalizeFile(raw: RawFile, detector: FieldDetector): MessageFile {
+  detectUnknownKeys(raw, FILE_KEYS, 'file', detector)
+  return {
+    uuid: typeof raw.file_uuid === 'string' ? raw.file_uuid : '',
+    name: typeof raw.file_name === 'string' && raw.file_name ? raw.file_name : null,
   }
 }
 
@@ -588,10 +616,9 @@ const ROOT_PARENT_SENTINEL = '00000000-0000-4000-8000-000000000000'
 export function normalizeConversation(raw: RawConversation, detector: FieldDetector = createFieldDetector()): Conversation {
   const rawMessages = raw.chat_messages ?? []
   const messages: Message[] = rawMessages.map((rawMessage) => {
-    if ((rawMessage.attachments?.length ?? 0) > 0 || (rawMessage.files?.length ?? 0) > 0) {
-      detector.recordUnverifiedAttachment()
-    }
     const blocks = normalizeBlocks(rawMessage.content ?? [], detector)
+    const attachments = (rawMessage.attachments ?? []).filter(isObject).map((a) => normalizeAttachment(a, detector))
+    const files = (rawMessage.files ?? []).filter(isObject).map((f) => normalizeFile(f, detector))
     return {
       uuid: rawMessage.uuid,
       parentUuid:
@@ -602,7 +629,10 @@ export function normalizeConversation(raw: RawConversation, detector: FieldDetec
       createdAt: rawMessage.created_at,
       updatedAt: rawMessage.updated_at,
       blocks,
-      isEmpty: blocks.length === 0,
+      attachments,
+      files,
+      // Сообщение с одним лишь вложением — не пустое: его нужно показать в ленте (§4.3)
+      isEmpty: blocks.length === 0 && attachments.length === 0 && files.length === 0,
     }
   })
 

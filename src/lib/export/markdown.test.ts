@@ -258,4 +258,26 @@ describe('conversationToMarkdown', () => {
     const markdown = conversationToMarkdown(conversation, { includeTools: false })
     expect(markdown).toContain('правка без исходного файла')
   })
+
+  test('вложения: извлечённый текст целиком в fenced-блоке, файл без содержимого — строкой', () => {
+    const conversation = normalizeConversation(
+      makeConversation({
+        chat_messages: [
+          makeMessage({
+            sender: 'human',
+            content: [textBlock('Посмотри')],
+            attachments: [{ file_name: 'brief.txt', file_type: 'txt', file_size: 12, extracted_content: 'x'.repeat(5000) }],
+            files: [{ file_uuid: 'f1', file_name: null }],
+          }),
+        ],
+      }),
+    )
+
+    const markdown = conversationToMarkdown(conversation, { includeTools: false })
+
+    expect(markdown).toContain('### Вложение: brief.txt (txt, 12 B)')
+    expect(markdown).toContain('x'.repeat(5000))
+    expect(markdown).toContain('Файл: Файл — не вошёл в экспорт')
+    expect(markdown.indexOf('### Вложение')).toBeLessThan(markdown.indexOf('Посмотри'))
+  })
 })

@@ -1,5 +1,14 @@
 import i18next from 'i18next'
-import type { Block, Citation, Conversation, ConversationFile, Project, ToolCall, ToolResult } from '~/lib/archive/model'
+import type {
+  Block,
+  Citation,
+  Conversation,
+  ConversationFile,
+  Message,
+  Project,
+  ToolCall,
+  ToolResult,
+} from '~/lib/archive/model'
 import { displayNameOf } from '~/lib/display-name'
 
 export interface MarkdownExportOptions {
@@ -103,6 +112,26 @@ function renderUnknown(block: Extract<Block, { kind: 'unknown' }>): string {
   )
 }
 
+/** Вложения пользователя — перед текстом сообщения, извлечённый текст целиком, без усечения. */
+function renderAttachments(message: Message): string[] {
+  const lines: string[] = []
+  for (const attachment of message.attachments) {
+    const meta = [attachment.type, attachment.size !== null ? `${attachment.size} B` : null].filter(Boolean).join(', ')
+    lines.push(
+      `### ${i18next.t('export.attachment', { name: attachment.name || i18next.t('conversation.attachmentUntitled') })}${meta ? ` (${meta})` : ''}`,
+      '',
+      '```',
+      attachment.extractedText,
+      '```',
+      '',
+    )
+  }
+  for (const file of message.files) {
+    lines.push(i18next.t('export.fileNotExported', { name: file.name ?? i18next.t('conversation.file') }), '')
+  }
+  return lines
+}
+
 /** Раздел «Файлы» в конце документа — всегда, полное содержимое без усечения (§5.3 плана). */
 function renderFilesSection(files: ConversationFile[]): string[] {
   if (files.length === 0) return []
@@ -172,6 +201,8 @@ export function conversationToMarkdown(conversation: Conversation, options: Mark
       lines.push('')
       continue
     }
+
+    lines.push(...renderAttachments(message))
 
     for (const block of message.blocks) {
       switch (block.kind) {

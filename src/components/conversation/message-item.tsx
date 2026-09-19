@@ -1,4 +1,5 @@
 import type { Message } from '~/lib/archive/model'
+import { MessageAttachments } from './message-attachments'
 import { TextBlock } from './blocks/text-block'
 import { ThinkingBlock } from './blocks/thinking-block'
 import { ToolBlock } from './blocks/tool-block'
@@ -7,6 +8,8 @@ import { UnknownBlock } from './blocks/unknown-block'
 function MessageBlocks({ message, showTools }: { message: Message; showTools: boolean }) {
   return (
     <div className="flex flex-col gap-3">
+      {/* Вложения — над блоками, у любого отправителя: у ассистента не встречались, но форма та же */}
+      <MessageAttachments attachments={message.attachments} files={message.files} />
       {message.blocks.map((block, i) => {
         switch (block.kind) {
           case 'text':

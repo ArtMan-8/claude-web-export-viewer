@@ -31,6 +31,8 @@ export interface ResultFile {
   name: string
   mimeType: string | null
   uuid: string
+  /** local_resource.artifact_publishable — файл можно было опубликовать как артефакт */
+  isPublishable: boolean
 }
 
 /** Распознавание по форме `input` — см. docs/plan-export-format-2026-08.md §3.2 */
@@ -74,6 +76,20 @@ export type Block =
     }
   | { kind: 'unknown'; blockType: string; raw: unknown }
 
+/** Вложение пользователя: текст, который Claude прочитал из файла (§4.3 плана 2026-09) */
+export interface MessageAttachment {
+  name: string // file_name; пустое — UI подставит «Вложение»
+  type: string // file_type: 'txt', …
+  size: number | null // file_size, байты
+  extractedText: string // extracted_content — то, что прочитал Claude
+}
+
+/** Файл пользователя, содержимого которого в экспорте нет */
+export interface MessageFile {
+  uuid: string // file_uuid
+  name: string | null // file_name
+}
+
 export interface Message {
   uuid: string
   parentUuid: string | null
@@ -81,7 +97,9 @@ export interface Message {
   createdAt: string
   updatedAt: string
   blocks: Block[]
-  /** true, если у сообщения нет ни одного содержательного блока */
+  attachments: MessageAttachment[]
+  files: MessageFile[]
+  /** true, если у сообщения нет ни одного содержательного блока и ни одного вложения */
   isEmpty: boolean
 }
 

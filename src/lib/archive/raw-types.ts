@@ -1,6 +1,6 @@
 /**
  * Типы «как есть» в файлах экспорта claude.ai (формат manifest version "1.0",
- * проверено на реальном архиве от 2026-08-29). Экспорт нестабилен между
+ * проверено на реальных архивах от 2026-08-29 и 2026-09-18). Экспорт нестабилен между
  * версиями — не доверяй этим типам как гарантии, всегда обрабатывай
  * отсутствующие/неизвестные поля в normalize.ts, а не здесь.
  */
@@ -50,16 +50,19 @@ export interface RawMessage {
   parent_message_uuid: string
 }
 
+/** Вложение пользователя с извлечённым текстом — форма проверена на выгрузке 2026-09-18 (§2.3 плана 2026-09). */
 export interface RawAttachment {
-  file_name?: string
-  file_type?: string
-  extracted_content?: string
-  [key: string]: unknown
+  file_name: string
+  file_type: string
+  file_size: number
+  /** Текст, который реально прочитал Claude; может быть короче file_size */
+  extracted_content: string
 }
 
+/** Файл пользователя без содержимого — в экспорт попадают только uuid и (иногда пустое) имя. */
 export interface RawFile {
-  file_name?: string
-  [key: string]: unknown
+  file_uuid: string
+  file_name: string | null
 }
 
 export interface RawCitation {
@@ -152,6 +155,7 @@ export interface RawLocalResourceItem {
   name?: string
   file_name?: string
   mime_type?: string
+  artifact_publishable?: boolean
   [key: string]: unknown
 }
 

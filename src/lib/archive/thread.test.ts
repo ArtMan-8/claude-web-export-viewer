@@ -3,7 +3,7 @@ import { buildThread, resolveDisplayPath } from './thread'
 import type { Message } from './model'
 
 function msg(uuid: string, parentUuid: string | null, createdAt: string): Message {
-  return { uuid, parentUuid, sender: 'human', createdAt, updatedAt: createdAt, blocks: [], isEmpty: true }
+  return { uuid, parentUuid, sender: 'human', createdAt, updatedAt: createdAt, blocks: [], attachments: [], files: [], isEmpty: true }
 }
 
 describe('buildThread', () => {

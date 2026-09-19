@@ -121,7 +121,11 @@
       "noCreate": "edit without a source file — reconstruction is impossible",
       "ambiguousEdit": "ambiguous edit — the source fragment occurs more than once",
       "missingEdit": "edit doesn't apply — the source fragment wasn't found"
-    }
+    },
+    "attachment": "Attachment",
+    "attachmentUntitled": "Attachment",
+    "file": "File",
+    "fileNotExported": "not included in the export"
   },
   "common": {
     "untitled": "Untitled",
@@ -135,7 +139,9 @@
     "exitCode": "Exit code: {{code}}",
     "stderr": "Standard error",
     "sourceUnavailable": "Source unavailable",
-    "publishedAt": "published {{date}}"
+    "publishedAt": "published {{date}}",
+    "sizeKb": "{{count}} KB",
+    "sizeBytes": "{{count}} B"
   },
   "tools": {
     "web_search": "Web search",
@@ -164,8 +170,7 @@
     "unknown": "Unknown error: {{message}}",
     "unknownBlockType": "Unknown block type \"{{type}}\" ({{count}})",
     "unknownResultItem": "Unknown result item type \"{{type}}\" ({{count}})",
-    "unknownKeys": "Unknown field {{context}}.{{key}} ({{count}})",
-    "unverifiedAttachments": "Non-empty attachments/files on {{count}} message(s) — shape not verified"
+    "unknownKeys": "Unknown field {{context}}.{{key}} ({{count}})"
   },
   "export": {
     "speakerHuman": "You",
@@ -180,6 +185,8 @@
     "filesHeading": "Files",
     "fileMeta": "{{revisions}} revisions · {{size}} characters",
     "exitCode": "exit code: {{code}}",
-    "deletedHeading": "Deleted"
+    "deletedHeading": "Deleted",
+    "attachment": "Attachment: {{name}}",
+    "fileNotExported": "File: {{name}} — not included in the export"
   }
 }

@@ -121,7 +121,11 @@
       "noCreate": "правка без исходного файла — реконструкция невозможна",
       "ambiguousEdit": "правка неоднозначна — исходный фрагмент встречается несколько раз",
       "missingEdit": "правка не применяется — исходный фрагмент не найден"
-    }
+    },
+    "attachment": "Вложение",
+    "attachmentUntitled": "Вложение",
+    "file": "Файл",
+    "fileNotExported": "не вошёл в экспорт"
   },
   "common": {
     "untitled": "Без названия",
@@ -135,7 +139,9 @@
     "exitCode": "Код возврата: {{code}}",
     "stderr": "Стандартный поток ошибок",
     "sourceUnavailable": "Источник недоступен",
-    "publishedAt": "опубликовано {{date}}"
+    "publishedAt": "опубликовано {{date}}",
+    "sizeKb": "{{count}} КБ",
+    "sizeBytes": "{{count}} Б"
   },
   "tools": {
     "web_search": "Поиск в вебе",
@@ -164,8 +170,7 @@
     "unknown": "Неизвестная ошибка: {{message}}",
     "unknownBlockType": "Неизвестный тип блока «{{type}}» ({{count}})",
     "unknownResultItem": "Неизвестный тип элемента результата «{{type}}» ({{count}})",
-    "unknownKeys": "Неизвестное поле {{context}}.{{key}} ({{count}})",
-    "unverifiedAttachments": "Непустые attachments/files у {{count}} сообщений — форма не проверена"
+    "unknownKeys": "Неизвестное поле {{context}}.{{key}} ({{count}})"
   },
   "export": {
     "speakerHuman": "Вы",
@@ -180,6 +185,8 @@
     "filesHeading": "Файлы",
     "fileMeta": "{{revisions}} правок · {{size}} символов",
     "exitCode": "код возврата: {{code}}",
-    "deletedHeading": "Удалённые"
+    "deletedHeading": "Удалённые",
+    "attachment": "Вложение: {{name}}",
+    "fileNotExported": "Файл: {{name}} — не вошёл в экспорт"
   }
 }

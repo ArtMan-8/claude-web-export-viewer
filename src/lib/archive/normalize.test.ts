@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest'
 import { makeConversation, makeMessage, makeProject, textBlock, toolResultBlock, toolUseBlock } from '~/test-fixtures/fixtures'
 import { collectConversationFiles, createFieldDetector, normalizeConversation, normalizeProject, parseToolCall, parseToolResult } from './normalize'
-import type { RawContentBlock } from './raw-types'
+import type { RawAttachment, RawContentBlock } from './raw-types'
 
 describe('normalizeConversation', () => {
   test('игнорирует мусорное плоское поле text и берёт контент только из content[]', () => {
@@ -143,7 +143,7 @@ describe('normalizeConversation', () => {
       name: '',
       updated_at: '2026-09-18T16:57:00Z',
       chat_messages: [
-        makeMessage({ sender: 'human', text: '', content: [], files: [{ file_uuid: 'f1', file_name: '' }] }),
+        makeMessage({ sender: 'human', text: '', content: [], files: [{ file_uuid: 'f1', file_name: null }] }),
         makeMessage({ sender: 'assistant', text: '', content: [] }),
       ],
     })
@@ -169,6 +169,60 @@ describe('normalizeConversation', () => {
       makeConversation({ chat_messages: [makeMessage({ text: '', content: [textBlock('Привет')] })] }),
     )
     expect(withContent.isDeleted).toBe(false)
+  })
+
+  test('вложения: attachments с извлечённым текстом и files без содержимого', () => {
+    const conversation = makeConversation({
+      chat_messages: [
+        makeMessage({
+          content: [textBlock('Смотри файл')],
+          attachments: [{ file_name: '', file_type: 'txt', file_size: 34087, extracted_content: 'текст файла' }],
+          files: [
+            { file_uuid: 'f1', file_name: null },
+            { file_uuid: 'f2', file_name: 'notes.md' },
+          ],
+        }),
+      ],
+    })
+
+    const message = normalizeConversation(conversation).messages[0]
+    expect(message.attachments).toEqual([{ name: '', type: 'txt', size: 34087, extractedText: 'текст файла' }])
+    expect(message.files).toEqual([
+      { uuid: 'f1', name: null },
+      { uuid: 'f2', name: 'notes.md' },
+    ])
+  })
+
+  test('сообщение с вложением и без единого блока не считается пустым', () => {
+    const conversation = makeConversation({
+      chat_messages: [
+        makeMessage({
+          content: [],
+          attachments: [{ file_name: 'a.txt', file_type: 'txt', file_size: 10, extracted_content: 'x' }],
+        }),
+      ],
+    })
+    const result = normalizeConversation(conversation)
+    expect(result.messages[0].isEmpty).toBe(false)
+    expect(result.isEmpty).toBe(false)
+  })
+
+  test('незнакомый ключ во вложении даёт предупреждение unknownKeys, а не unverifiedAttachments', () => {
+    const detector = createFieldDetector()
+    const conversation = makeConversation({
+      chat_messages: [
+        makeMessage({
+          content: [textBlock('x')],
+          attachments: [
+            { file_name: 'a.txt', file_type: 'txt', file_size: 1, extracted_content: 'x', preview_url: 'u' } as RawAttachment,
+          ],
+        }),
+      ],
+    })
+    normalizeConversation(conversation, detector)
+    const warnings = detector.toWarnings()
+    expect(warnings).toContainEqual({ code: 'unknownKeys', params: { context: 'attachment', key: 'preview_url', count: 1 } })
+    expect(warnings.map((w) => w.code)).not.toContain('unverifiedAttachments')
   })
 
   test('превращает фиктивный parent_message_uuid корня в null', () => {
@@ -340,12 +394,18 @@ describe('parseToolResult', () => {
 
   test('files: элементы local_resource', () => {
     const result = parseToolResult(
-      [{ type: 'local_resource', path: 'src/a.md', name: 'a.md', mime_type: 'text/markdown', uuid: 'file-1' }],
+      [
+        { type: 'local_resource', path: 'src/a.md', name: 'a.md', mime_type: 'text/markdown', uuid: 'file-1' },
+        { type: 'local_resource', file_path: 'b.html', name: 'b.html', mime_type: 'text/html', uuid: 'file-2', artifact_publishable: true },
+      ],
       null,
     )
     expect(result).toEqual({
       kind: 'files',
-      files: [{ path: 'src/a.md', name: 'a.md', mimeType: 'text/markdown', uuid: 'file-1' }],
+      files: [
+        { path: 'src/a.md', name: 'a.md', mimeType: 'text/markdown', uuid: 'file-1', isPublishable: false },
+        { path: 'b.html', name: 'b.html', mimeType: 'text/html', uuid: 'file-2', isPublishable: true },
+      ],
     })
   })
 
