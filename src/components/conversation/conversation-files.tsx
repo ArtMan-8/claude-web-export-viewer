@@ -78,12 +78,14 @@ export function ConversationFiles({ files }: { files: ConversationFile[] }) {
   const showSubheadings = presented.length > 0 && intermediate.length > 0
 
   return (
-    <Collapsible open={open} onOpenChange={setOpen} className="border-b px-4 py-2">
+    <Collapsible open={open} onOpenChange={setOpen} className="shrink-0 border-b px-4 py-2">
       <CollapsibleTrigger className="flex items-center gap-1 text-sm font-medium text-muted-foreground">
         <ChevronDown className={`size-3.5 shrink-0 transition-transform ${open ? '' : '-rotate-90'}`} />
         {t('conversation.filesHeading', { count: files.length })}
       </CollapsibleTrigger>
-      <CollapsibleContent className="space-y-3 pt-2">
+      {/* Секция сидит в шапке над списком сообщений и своей прокрутки не имеет — без лимита
+          раскрытые превью вытесняют список за край экрана */}
+      <CollapsibleContent className="max-h-[50vh] space-y-3 overflow-y-auto pt-2">
         {presented.length > 0 && (
           <div className="space-y-2">
             {showSubheadings && (
